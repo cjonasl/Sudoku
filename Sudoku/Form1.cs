@@ -1,11 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
 using System.Windows.Forms;
 using System.Collections;
 
@@ -507,144 +503,40 @@ namespace Sudoku
         }
     }
 
-    public class SudokuIterator
+    /// <summary>
+    /// Item is one of 1, 2, 3, 4, 5, 6, 7, 8, 9
+    /// </summary>
+    public class SudokuPossibleToSetItem
     {
-        public int[,,] _rows, _columns, _squares;
-        public int[,] _numberOfPossibleNumbersRows, _numberOfPossibleNumbersColumns, _numberOfPossibleNumbersSquares;
-        public int _numberOfNewNumbersPossibleToSetInSudokuBoard;
+        public int[,,] rows, columns, squares;
+        public int[,] numberOfPossibleItemsRows, numberOfPossibleItemsColumns, numberOfPossibleItemsSquares;
+        public int totalNumberOfItemsPossibleToSet;
 
-        public SudokuIterator()
+        public SudokuPossibleToSetItem()
         {
-            _rows = new int[9, 9, 9];
-            _columns = new int[9, 9, 9];
-            _squares = new int[9, 9, 9];
-            _numberOfPossibleNumbersRows = new int[9, 9];
-            _numberOfPossibleNumbersColumns = new int[9, 9];
-            _numberOfPossibleNumbersSquares = new int[9, 9];
+            rows = new int[9, 9, 9];
+            columns = new int[9, 9, 9];
+            squares = new int[9, 9, 9];
+            numberOfPossibleItemsRows = new int[9, 9];
+            numberOfPossibleItemsColumns = new int[9, 9];
+            numberOfPossibleItemsSquares = new int[9, 9];
         }
 
-        private void Init()
+        public void Process(SudokuBoard sudokuBoard)
         {
-            _numberOfNewNumbersPossibleToSetInSudokuBoard = 0;
+            int i, j, k, squareIndex, squareSequenceIndex;
 
-            for(int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    _numberOfPossibleNumbersRows[i, j] = -1;
-                    _numberOfPossibleNumbersColumns[i, j] = -1;
-                    _numberOfPossibleNumbersSquares[i, j] = -1;
-
-                }
-            }
-        }
-
-        private bool IsNumberAloneInRow(int rowIndex, int number)
-        {
-            int i, j, numberOfOccurenciesOfNumber = 0;
-
-            for(i = 0; i < 9; i++)
-            {
-                for (j = 0; j < _numberOfPossibleNumbersRows[rowIndex, i]; j++)
-                {
-                    if (_rows[rowIndex, i, j] == number)
-                    {
-                        numberOfOccurenciesOfNumber++;
-                    }
-                }
-            }
-
-            if (numberOfOccurenciesOfNumber == 0)
-            {
-                throw new Exception("(numberOfOccurenciesOfNumber == 0) in method IsNumberAloneInRow");
-            }
-
-            return numberOfOccurenciesOfNumber == 1;
-        }
-
-        private bool IsNumberAloneInColumn(int columnIndex, int number)
-        {
-            int i, j, numberOfOccurenciesOfNumber = 0;
-
-            for (i = 0; i < 9; i++)
-            {
-                for (j = 0; j < _numberOfPossibleNumbersColumns[columnIndex, i]; j++)
-                {
-                    if (_columns[columnIndex, i, j] == number)
-                    {
-                        numberOfOccurenciesOfNumber++;
-                    }
-                }
-            }
-
-            if (numberOfOccurenciesOfNumber == 0)
-            {
-                throw new Exception("(numberOfOccurenciesOfNumber == 0) in method IsNumberAloneInColumn");
-            }
-
-            return numberOfOccurenciesOfNumber == 1;
-        }
-
-        private bool IsNumberAloneInSquare(int squareIndex, int number)
-        {
-            int i, j, numberOfOccurenciesOfNumber = 0;
-
-            for (i = 0; i < 9; i++)
-            {
-                for (j = 0; j < _numberOfPossibleNumbersSquares[squareIndex, i]; j++)
-                {
-                    if (_squares[squareIndex, i, j] == number)
-                    {
-                        numberOfOccurenciesOfNumber++;
-                    }
-                }
-            }
-
-            if (numberOfOccurenciesOfNumber == 0)
-            {
-                throw new Exception("(numberOfOccurenciesOfNumber == 0) in method IsNumberAloneInSquare");
-            }
-
-            return numberOfOccurenciesOfNumber == 1;
-        }
-
-        private void FillTempIntArray(int[,,] v, int i, int j, int n, int[] tmpIntArray)
-        {
-            for(int h = 0; h < n; h++)
-            {
-                tmpIntArray[h] = v[i, j, h];
-            }
-        }
-
-        public int[,] ReturnNewNumbersPossibleToSetInSudokuBoard(SudokuBoard sudokuBoard, out int numberOfNewNumbersPossibleToSetInSudokuBoard, out string debugString)
-        {
-            int i, j, k, n, squareIndex, squareSequenceIndex, numberOfNumbersPossibleToSet;
-            int[,] possibleToSetInSudokuBoard;
-            int[] tmpIntArray;
-            string[,] debug;
-            StringBuilder sb;
-            ArrayList tmpArrayList;
-            string rowColumn;
-            bool errorFound = false;
-
-            possibleToSetInSudokuBoard = new int[9, 9];
-            debug = new string[9, 9];
-            tmpIntArray = new int[9];
-            numberOfNewNumbersPossibleToSetInSudokuBoard = 0;
-            debugString = "";
-
-            sb = new StringBuilder();
-            tmpArrayList = new ArrayList();
+            totalNumberOfItemsPossibleToSet = 0;
 
             for (i = 0; i < 9; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
-                    possibleToSetInSudokuBoard[i, j] = 0;
+                    numberOfPossibleItemsRows[i, j] = -1;
+                    numberOfPossibleItemsColumns[i, j] = -1;
+                    numberOfPossibleItemsSquares[i, j] = -1;
                 }
             }
-
-            Init();
 
             for (i = 0; i < 9; i++)
             {
@@ -655,27 +547,156 @@ namespace Sudoku
 
                     if (!sudokuBoard.NumberIsSet(i, j))
                     {
-                        _numberOfPossibleNumbersRows[i, j] = 0;
-                        _numberOfPossibleNumbersColumns[j, i] = 0;
-                        _numberOfPossibleNumbersSquares[squareIndex, squareSequenceIndex] = 0;
+                        numberOfPossibleItemsRows[i, j] = 0;
+                        numberOfPossibleItemsColumns[j, i] = 0;
+                        numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex] = 0;
 
                         for (k = 1; k <= 9; k++)
                         {
                             if (sudokuBoard.CanSetNumber(i, j, k))
                             {
-                                _rows[i, j, _numberOfPossibleNumbersRows[i, j]] = k;
-                                _numberOfPossibleNumbersRows[i, j]++;
+                                rows[i, j, numberOfPossibleItemsRows[i, j]] = k;
+                                numberOfPossibleItemsRows[i, j]++;
 
-                                _columns[j, i, _numberOfPossibleNumbersColumns[j, i]] = k;
-                                _numberOfPossibleNumbersColumns[j, i]++;
+                                columns[j, i, numberOfPossibleItemsColumns[j, i]] = k;
+                                numberOfPossibleItemsColumns[j, i]++;
 
-                                _squares[squareIndex, squareSequenceIndex, _numberOfPossibleNumbersSquares[squareIndex, squareSequenceIndex]] = k;
-                                _numberOfPossibleNumbersSquares[squareIndex, squareSequenceIndex]++;
+                                squares[squareIndex, squareSequenceIndex, numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]] = k;
+                                numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]++;
+
+                                totalNumberOfItemsPossibleToSet++;
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    public class OneStepSudokuSolver
+    {
+        public SudokuPossibleToSetItem sudokuPossibleToSetItem;
+        public int totalNumberOfItemsPossibleToSetUniquely;
+        public int numberOfItemsPossibleToSetUniquelyDueToAloneInCell;
+        public int numberOfItemsPossibleToSetUniquelyDueToAloneItemValue;
+        public int[,] possibleToSetUniquely;
+
+        private int _numberOfCallsToProcess;
+        private string _debugDirectory;
+
+        public OneStepSudokuSolver()
+        {
+            sudokuPossibleToSetItem = new SudokuPossibleToSetItem();
+            possibleToSetUniquely = new int[81, 3];
+            _numberOfCallsToProcess = 0;
+            _debugDirectory = ConfigurationManager.AppSettings["DebugDirectory"] + "\\OneStepSudokuSolver";
+
+            if (!Directory.Exists(_debugDirectory))
+            {
+                Directory.CreateDirectory(_debugDirectory);
+            }
+            else
+            {
+                string[] files = Directory.GetFiles(_debugDirectory);
+
+                foreach(string file in files)
+                {
+                    File.Delete(file);
+                }
+            }
+        }
+
+        private bool IsItemAloneInRow(int rowIndex, int item)
+        {
+            int i, j, numberOfOccurenciesOfItem = 0;
+
+            for(i = 0; i < 9; i++)
+            {
+                for (j = 0; j < sudokuPossibleToSetItem.numberOfPossibleItemsRows[rowIndex, i]; j++)
+                {
+                    if (sudokuPossibleToSetItem.rows[rowIndex, i, j] == item)
+                    {
+                        numberOfOccurenciesOfItem++;
+                    }
+                }
+            }
+
+            if (numberOfOccurenciesOfItem == 0)
+            {
+                throw new Exception("(numberOfOccurenciesOfItem == 0) in method IsItemAloneInRow");
+            }
+
+            return (numberOfOccurenciesOfItem == 1);
+        }
+
+        private bool IsItemAloneInColumn(int columnIndex, int item)
+        {
+            int i, j, numberOfOccurenciesOfItem = 0;
+
+            for (i = 0; i < 9; i++)
+            {
+                for (j = 0; j < sudokuPossibleToSetItem.numberOfPossibleItemsColumns[columnIndex, i]; j++)
+                {
+                    if (sudokuPossibleToSetItem.columns[columnIndex, i, j] == item)
+                    {
+                        numberOfOccurenciesOfItem++;
+                    }
+                }
+            }
+
+            if (numberOfOccurenciesOfItem == 0)
+            {
+                throw new Exception("(numberOfOccurenciesOfItem == 0) in method IsItemAloneInColumn");
+            }
+
+            return (numberOfOccurenciesOfItem == 1);
+        }
+
+        private bool IsItemAloneInSquare(int squareIndex, int item)
+        {
+            int i, j, numberOfOccurenciesOfItem = 0;
+
+            for (i = 0; i < 9; i++)
+            {
+                for (j = 0; j < sudokuPossibleToSetItem.numberOfPossibleItemsSquares[squareIndex, i]; j++)
+                {
+                    if (sudokuPossibleToSetItem.squares[squareIndex, i, j] == item)
+                    {
+                        numberOfOccurenciesOfItem++;
+                    }
+                }
+            }
+
+            if (numberOfOccurenciesOfItem == 0)
+            {
+                throw new Exception("(numberOfOccurenciesOfItem == 0) in method IsItemAloneInSquare");
+            }
+
+            return (numberOfOccurenciesOfItem == 1);
+        }
+
+        private void FillTempIntArray(int[,,] v, int i, int j, int n, int[] tmpIntArray)
+        {
+            for(int h = 0; h < n; h++)
+            {
+                tmpIntArray[h] = v[i, j, h];
+            }
+        }
+
+        public void Process(SudokuBoard sudokuBoard, out bool errorFound)
+        {
+            int i, j, k, squareIndex, numberOfNumbersPossibleToSet;
+            string[,] debug = new string[9, 9];
+            string rowColumn, fileNameFullPath;
+            StringBuilder sb = new StringBuilder();
+            ArrayList tmpArrayList = new ArrayList();
+            int[] tmpIntArray = new int[9];
+
+            _numberOfCallsToProcess++;
+
+            errorFound = false;
+
+            sudokuPossibleToSetItem.Process(sudokuBoard);
 
             for (i = 0; i < 9; i++)
             {
@@ -687,16 +708,19 @@ namespace Sudoku
 
                     if (!sudokuBoard.NumberIsSet(i, j))
                     {
-                        if (_numberOfPossibleNumbersRows[i, j] == 0)
+                        if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] == 0)
                         {
-                            errorFound = true;
-                            debug[i, j] = rowColumn + "ERROR!! Not possible to put any number in board square that does not cause conflict";
+                            debug[i, j] = rowColumn + "ERROR!! Not possible to set any item in cell that does not cause conflict!";
                         }
-                        else if (_numberOfPossibleNumbersRows[i, j] == 1)
+                        else if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] == 1)
                         {
-                            debug[i, j] = rowColumn + string.Format("CAN SET NUMBER {0}. Number {0} alone possible in board square", _rows[i, j, 0].ToString());
-                            possibleToSetInSudokuBoard[i, j] = _rows[i, j, 0];
-                            numberOfNewNumbersPossibleToSetInSudokuBoard++;
+                            numberOfItemsPossibleToSetUniquelyDueToAloneInCell++;
+                            possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 0] = i;
+                            possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 1] = j;
+                            possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 2] = sudokuPossibleToSetItem.rows[i, j, 0];
+                            totalNumberOfItemsPossibleToSetUniquely++;
+
+                            debug[i, j] = rowColumn + string.Format("CAN SET ITEM {0}. The item is alone in cell.", sudokuPossibleToSetItem.rows[i, j, 0].ToString());
                         }
                         else
                         {
@@ -704,70 +728,65 @@ namespace Sudoku
                             sb.Clear();
                             tmpArrayList.Clear();
 
-                            for (k = 0; k < _numberOfPossibleNumbersRows[i, j]; k++)
+                            for (k = 0; k < sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j]; k++)
                             {
-                                if (IsNumberAloneInRow(i, _rows[i, j, k]))
+                                if (IsItemAloneInRow(i, sudokuPossibleToSetItem.rows[i, j, k]))
                                 {
-                                    if (tmpArrayList.IndexOf(_rows[i, j, k]) == -1)
-                                    {
-                                        tmpArrayList.Add(_rows[i, j, k]);
-                                        numberOfNumbersPossibleToSet++;
-                                    }
-
-                                    sb.Append(string.Format(", number {0} alone possible in row", _rows[i, j, k].ToString()));
+                                    sb.Append(string.Format(", item {0} alone possible in row", sudokuPossibleToSetItem.rows[i, j, k].ToString()));
                                 }
 
-                                if (IsNumberAloneInColumn(j, _rows[i, j, k]))
+                                if (IsItemAloneInColumn(j, sudokuPossibleToSetItem.rows[i, j, k]))
                                 {
-                                    if (tmpArrayList.IndexOf(_rows[i, j, k]) == -1)
+                                    if (tmpArrayList.IndexOf(sudokuPossibleToSetItem.rows[i, j, k]) == -1)
                                     {
-                                        tmpArrayList.Add(_rows[i, j, k]);
+                                        tmpArrayList.Add(sudokuPossibleToSetItem.rows[i, j, k]);
                                         numberOfNumbersPossibleToSet++;
                                     }
 
-                                    sb.Append(string.Format(", number {0} alone possible in column", _rows[i, j, k].ToString()));
+                                    sb.Append(string.Format(", number {0} alone possible in column", sudokuPossibleToSetItem.rows[i, j, k].ToString()));
                                 }
 
-                                if (IsNumberAloneInSquare(squareIndex, _rows[i, j, k]))
+                                if (IsItemAloneInSquare(squareIndex, sudokuPossibleToSetItem.rows[i, j, k]))
                                 {
-                                    if (tmpArrayList.IndexOf(_rows[i, j, k]) == -1)
+                                    if (tmpArrayList.IndexOf(sudokuPossibleToSetItem.rows[i, j, k]) == -1)
                                     {
-                                        tmpArrayList.Add(_rows[i, j, k]);
+                                        tmpArrayList.Add(sudokuPossibleToSetItem.rows[i, j, k]);
                                         numberOfNumbersPossibleToSet++;
                                     }
 
-                                    sb.Append(string.Format(", number {0} alone possible in square", _rows[i, j, k].ToString()));
+                                    sb.Append(string.Format(", item {0} alone possible in square", sudokuPossibleToSetItem.rows[i, j, k].ToString()));
                                 }
                             }
 
-                            FillTempIntArray(_rows, i, j, _numberOfPossibleNumbersRows[i, j], tmpIntArray);
+                            FillTempIntArray(sudokuPossibleToSetItem.rows, i, j, sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j], tmpIntArray);
 
                             if (numberOfNumbersPossibleToSet == 0)
                             {
-                                debug[i, j] = rowColumn + "Can not set any number. Numbers not causing conflict: " + Utility.ReturnString(tmpIntArray, _numberOfPossibleNumbersRows[i, j]);
+                                debug[i, j] = rowColumn + "Can not set any number. Numbers not causing conflict: " + Utility.ReturnString(tmpIntArray, sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j]);
                             }
                             else if (numberOfNumbersPossibleToSet == 1)
                             {
-                                possibleToSetInSudokuBoard[i, j] = (int)tmpArrayList[0];
-                                numberOfNewNumbersPossibleToSetInSudokuBoard++;
-                                debug[i, j] = rowColumn + "CAN SET NUMBER " + tmpArrayList[0].ToString() + ". Number(s) not causing conflict: " + Utility.ReturnString(tmpIntArray, _numberOfPossibleNumbersRows[i, j])  + sb.ToString();
+                                numberOfItemsPossibleToSetUniquelyDueToAloneItemValue++;
+                                possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 0] = i;
+                                possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 1] = j;
+                                possibleToSetUniquely[totalNumberOfItemsPossibleToSetUniquely, 2] = (int)tmpArrayList[0];
+                                totalNumberOfItemsPossibleToSetUniquely++;
+
+                                debug[i, j] = rowColumn + "CAN SET ITEM " + tmpArrayList[0].ToString() + ". Items not causing conflict: " + Utility.ReturnString(tmpIntArray, sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j])  + sb.ToString();
                             }
                             else
                             {
                                 errorFound = true;
-                                debug[i, j] = rowColumn + "ERROR!! Can set more than one number: " + Utility.ReturnString(tmpArrayList) + ". Number(s) not causing conflict: " + Utility.ReturnString(tmpIntArray, _numberOfPossibleNumbersRows[i, j]) + ", " + sb.ToString();
+                                debug[i, j] = rowColumn + "ERROR!! Can set more than one item: " + Utility.ReturnString(tmpArrayList) + ". Items not causing conflict: " + Utility.ReturnString(tmpIntArray, sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j]) + ", " + sb.ToString();
                             }
                         }
                     }
                     else
                     {
-                        debug[i, j] = rowColumn + string.Format("Board square is already set with number {0}", sudokuBoard.ReturnNumber(i, j).ToString());
+                        debug[i, j] = rowColumn + string.Format("Board cell is already set with item {0}", sudokuBoard.ReturnNumber(i, j).ToString());
                     }
                 }
             }
-
-            if (errorFound)
-                numberOfNewNumbersPossibleToSetInSudokuBoard = 0;
 
             sb.Clear();
 
@@ -784,9 +803,194 @@ namespace Sudoku
                 }
             }
 
-            debugString = sb.ToString();
+            fileNameFullPath = _debugDirectory + "\\" + string.Format("Process{0} TotalPossible {1} AloneCell {2} AloneItemValue {3}.txt",
+                _numberOfCallsToProcess.ToString(),
+                sudokuPossibleToSetItem.totalNumberOfItemsPossibleToSet.ToString(),
+                numberOfItemsPossibleToSetUniquelyDueToAloneInCell.ToString(),
+                numberOfItemsPossibleToSetUniquelyDueToAloneItemValue.ToString());
 
-            return possibleToSetInSudokuBoard;
+            Utility.CreateNewFile(fileNameFullPath, sb.ToString());
+        }
+
+        public class SudokuPossibleHolder
+        {
+            private int _row, _column, _numberOfPossibleItems;
+            private int[] _possibleItems;
+
+            public SudokuPossibleHolder(int row, int column, int numberOfPossibleItems, int[] possibleItems)
+            {
+                _row = row;
+                _column = column;
+                _numberOfPossibleItems = numberOfPossibleItems;
+
+                _possibleItems = new int[numberOfPossibleItems];
+
+                for(int i = 0; i < numberOfPossibleItems; i++)
+                {
+                    _possibleItems[i] = possibleItems[i];
+                }
+            }
+
+            private string PossibleItemsString()
+            {
+                StringBuilder sb = new StringBuilder("{");
+
+                for(int i = 0; i < _numberOfPossibleItems; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(", " + _possibleItems[i].ToString());
+                    }
+                    else
+                    {
+                        sb.Append(_possibleItems[0].ToString());
+                    }
+                }
+
+                sb.Append("}");
+
+                return sb.ToString();
+            }
+
+            public override string ToString()
+            {
+                return string.Format("[{0}, {1}, {2}]", _row.ToString(), _column.ToString(), PossibleItemsString());
+            }
+
+            public int ReturnItem(Random r)
+            {
+                int n = r.Next(_numberOfPossibleItems);
+                return _possibleItems[n];
+            }
+        }
+
+        public class CollectionSudokuPossibleHolder
+        {
+            private int _numberOfPossibleItems;
+            private ArrayList _sudokuPossibleHolders;
+
+            public CollectionSudokuPossibleHolder(int numberOfPossibleItems)
+            {
+                _numberOfPossibleItems = numberOfPossibleItems;
+                _sudokuPossibleHolders = new ArrayList();
+            }
+
+            public void Add(int row, int column, int[] possibleItems)
+            {
+                _sudokuPossibleHolders.Add(new SudokuPossibleHolder(row, column, _numberOfPossibleItems, possibleItems));
+            }
+
+            public override string ToString()
+            {
+                StringBuilder sb = new StringBuilder(string.Format("{0}:", _numberOfPossibleItems.ToString()));
+
+                for(int i = 0; i < _sudokuPossibleHolders.Count; i++)
+                {
+                    sb.Append("  " + ((SudokuPossibleHolder)_sudokuPossibleHolders[i]).ToString());
+                }
+
+                return sb.ToString().TrimEnd();
+            }
+
+            public int ReturnItem(Random r)
+            {
+                int n = r.Next(_sudokuPossibleHolders.Count);
+                return ((SudokuPossibleHolder)_sudokuPossibleHolders[n]).ReturnItem(r);
+            }
+
+            public void Reset()
+            {
+                _sudokuPossibleHolders.Clear();
+            }
+        }
+
+        public class SudokuSimulateItem
+        {
+            private CollectionSudokuPossibleHolder[] _collectionSudokuPossibleHolder;
+            private string _debugDirectory;
+            private int _numberOfCallsToReturnItem;
+
+            public SudokuSimulateItem()
+            {
+                _collectionSudokuPossibleHolder = new CollectionSudokuPossibleHolder[8];
+                _debugDirectory = ConfigurationManager.AppSettings["DebugDirectory"] + "\\SudokuSimulateItem";
+                _numberOfCallsToReturnItem = 0;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    _collectionSudokuPossibleHolder[i] = new CollectionSudokuPossibleHolder(2 + i);
+                }
+
+                if (!Directory.Exists(_debugDirectory))
+                {
+                    Directory.CreateDirectory(_debugDirectory);
+                }
+                else
+                {
+                    string[] files = Directory.GetFiles(_debugDirectory);
+
+                    foreach (string file in files)
+                    {
+                        File.Delete(file);
+                    }
+                }
+            }
+
+            private int[] ReturnIntArray(int[,,] u, int i, int j)
+            {
+                int[] v = new int[9];
+
+                for(int k = 0; k < 9; k++)
+                {
+                    v[k] = u[i, j, k];
+                }
+
+                return v;
+            }
+
+            public int ReturnItem(Random r, SudokuPossibleToSetItem sudokuPossibleToSetItem)
+            {
+                int item, minNumberOfPossibleItemsToSet = 9;
+                string fileNameFullPath;
+                StringBuilder sb;
+
+                _numberOfCallsToReturnItem++;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    _collectionSudokuPossibleHolder[i].Reset();
+                }
+
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 9; j++)
+                    {
+                        if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] != -1)
+                        {
+                            if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] < minNumberOfPossibleItemsToSet)
+                            {
+                                minNumberOfPossibleItemsToSet = sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j];
+                            }
+
+                            _collectionSudokuPossibleHolder[sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] - 2].Add(i + 1, j + 1, ReturnIntArray(sudokuPossibleToSetItem.rows, i, j));
+                        }
+                    }
+                }
+
+                item = _collectionSudokuPossibleHolder[minNumberOfPossibleItemsToSet - 2].ReturnItem(r);
+
+                sb = new StringBuilder(string.Format("Simulate item {0}\r\n\r\n", item.ToString()));
+
+                for (int i = 0; i < 8; i++)
+                {
+                    sb.Append(_collectionSudokuPossibleHolder[i].ToString() + "\r\n");
+                }
+
+                fileNameFullPath = _debugDirectory + "\\" + string.Format("ReturnItem{0}.txt", _numberOfCallsToReturnItem.ToString());
+                Utility.CreateNewFile(fileNameFullPath, sb.ToString().TrimEnd());
+
+                return item;
+            }
         }
     }
 }
