@@ -1,0 +1,97 @@
+﻿           string debugString;
+            string fileContents, errorMessage;
+            int i, j, iteration, numberOfNewNumbersPossibleToSetInSudokuBoard = 1;
+            bool sudokuSolved = false;
+
+            int[,] v;
+            SudokuBoard sudokuBoard;
+            SudokuIterator sudokuIterator;
+
+            fileContents = Utility.ReturnFileContents(dir + "\\SudokuBoardInput.txt");
+
+            if (!Utility.DataIsCorrect(fileContents, out errorMessage))
+            {
+                MessageBox.Show("Data in file is incorrect! Error message:\r\n" + errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                v = Utility.ReturnSudokuData(Utility.ReturnFileContents(dir + "\\SudokuBoardInput.txt"));
+
+                sudokuBoard = new SudokuBoard();
+
+                try
+                {
+                    for (i = 0; i < 9; i++)
+                    {
+                        for (j = 0; j < 9; j++)
+                        {
+                            if (v[i, j] != 0)
+                            {
+                                sudokuBoard.SetNumber(i, j, v[i, j]);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error happened when setting data to sudoku board! Error message:\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                //string str = sudokuBoard.ReturnSudoku();
+                //Utility.CreateNewFile("C:\\git_cjonasl\\Sudoku\\sudokuBoard.ReturnSudoku.txt", str);
+
+                Utility.InitDirectory(dir + "\\debug");
+
+                if (File.Exists(dir + "\\Sudoku result.txt"))
+                {
+                    File.Delete(dir + "\\Sudoku result.txt");
+                }
+
+                if (File.Exists(dir + "\\Error occured.txt"))
+                {
+                    File.Delete(dir + "\\Error occured.txt");
+                }
+
+                sudokuIterator = new SudokuIterator();
+
+                iteration = 1;
+
+                while ((numberOfNewNumbersPossibleToSetInSudokuBoard != 0) && (!sudokuSolved))
+                {
+                    v = sudokuIterator.ReturnNewNumbersPossibleToSetInSudokuBoard(sudokuBoard, out numberOfNewNumbersPossibleToSetInSudokuBoard, out debugString);
+
+                    if (numberOfNewNumbersPossibleToSetInSudokuBoard != 0)
+                    {
+                        try
+                        {
+                            for (i = 0; i < 9; i++)
+                            {
+                                for (j = 0; j < 9; j++)
+                                {
+                                    if (v[i, j] != 0)
+                                    {
+                                        sudokuBoard.SetNumber(i, j, v[i, j]);
+                                    }
+                                }
+                            }
+
+                            Utility.CreateNewFile(dir + "\\debug\\Iteration" + iteration.ToString() + ".txt", debugString);
+                            sudokuSolved = sudokuBoard.SudokuIsSolved;
+                            iteration++;
+                        }
+                        catch(Exception ex)
+                        {
+                            Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}. Error message: {1}", iteration.ToString(), ex.Message));
+                        }
+                    }
+                    else
+                    {
+                        Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}.", iteration.ToString()));
+                    }
+                }
+
+                if (sudokuSolved)
+                {
+                    Utility.CreateNewFile(dir + "\\Sudoku result.txt", sudokuBoard.SudokuBoardString);
+                }
+            }

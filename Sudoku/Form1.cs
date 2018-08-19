@@ -4,6 +4,7 @@ using System.Text;
 using System.Configuration;
 using System.Windows.Forms;
 using System.Collections;
+using System.Drawing;
 
 namespace Sudoku
 {
@@ -14,107 +15,69 @@ namespace Sudoku
         public Form1()
         {
             InitializeComponent();
+            CreateSudokuBoardInTheForm();
+
+            string str = "Position 1: Iteration numner\r\nPosition 2: Numner of item(s) set in sudoku board\r\nPosition 3: Number of item(s) not set in sudoku board\r\n";
+            str += "Position 4: Total number of item(s) set in iteration\r\nPosition 5: Total number of item(s) set by alone in cell\r\n";
+            str += "Position 6: Total number of item(s) set by alone possible              (in row, column and/or square)\r\n";
+            str += "Position 7: Total number of items possible to set without              violation\r\nPosition 8: Simulated one item, true or false (if true                 then \"Total number of item(s) set in ite-                  ration\" must be 0)";
+            this.textBoxInfo.Text = str;
+            this.textBoxInfo.ReadOnly = true;
+
+            /*
+            int mx = -7, my = 0, mw = 1380, mh = 735, tx = 15, ty = 110, tw = 1340, th = 565; //Default values
+
+            if ((Screen.PrimaryScreen.WorkingArea.Width == 1366) && (Screen.PrimaryScreen.WorkingArea.Height == 728))
+            {
+                mx = -7;
+                my = 0;
+                mw = 1380;
+                mh = 735;
+                tx = 15;
+                ty = 110;
+                tw = 1340;
+                th = 565;
+            }
+
+            this.Location = new Point(mx, my);
+            this.Size = new Size(mw, mh);
+            this.textBox1.Location = new Point(tx, ty);
+            this.textBox1.Size = new Size(tw, th); */
+        }
+
+        private void CreateSudokuBoardInTheForm()
+        {
+            const int START_X = 14;
+            const int START_Y = 10;
+            const int CELL_WIDTH = 30;
+            const int CELL_HEIGHT = 25;
+            const int SPACE_BETWEEN_CELL_X = 10;
+            const int SPACE_BETWEEN_CELL_Y = 10;
+            const int EXTRA_SPACE_BETWEEN_SQUARES_X = 7;
+            const int EXTRA_SPACE_BETWEEN_SQUARES_Y = 7;
+            int x, y;
+
+            TextBox[,] textBoxes = new TextBox[9, 9];
+
+            for(int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    textBoxes[i, j] = new TextBox();
+                    textBoxes[i, j].Multiline = true;
+                    textBoxes[i, j].Name = string.Format("Row{0}Column{1}", i + 1, j + 1);
+                    textBoxes[i, j].Size = new Size(CELL_WIDTH, CELL_HEIGHT);
+                    x = START_X + (j * CELL_WIDTH) + (j * SPACE_BETWEEN_CELL_X) + (j / 3) * EXTRA_SPACE_BETWEEN_SQUARES_X;
+                    y = START_Y + (i * CELL_HEIGHT) + (i * SPACE_BETWEEN_CELL_Y) + (i / 3) * EXTRA_SPACE_BETWEEN_SQUARES_Y;
+                    textBoxes[i, j].Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                    textBoxes[i, j].Location = new Point(x, y);
+                    this.panel1.Controls.Add(textBoxes[i, j]);
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string debugString;
-            string fileContents, errorMessage;
-            int i, j, iteration, numberOfNewNumbersPossibleToSetInSudokuBoard = 1;
-            bool sudokuSolved = false;
-
-            int[,] v;
-            SudokuBoard sudokuBoard;
-            SudokuIterator sudokuIterator;
-
-            fileContents = Utility.ReturnFileContents(dir + "\\SudokuBoardInput.txt");
-
-            if (!Utility.DataIsCorrect(fileContents, out errorMessage))
-            {
-                MessageBox.Show("Data in file is incorrect! Error message:\r\n" + errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                v = Utility.ReturnSudokuData(Utility.ReturnFileContents(dir + "\\SudokuBoardInput.txt"));
-
-                sudokuBoard = new SudokuBoard();
-
-                try
-                {
-                    for (i = 0; i < 9; i++)
-                    {
-                        for (j = 0; j < 9; j++)
-                        {
-                            if (v[i, j] != 0)
-                            {
-                                sudokuBoard.SetNumber(i, j, v[i, j]);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("An error happened when setting data to sudoku board! Error message:\r\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-                //string str = sudokuBoard.ReturnSudoku();
-                //Utility.CreateNewFile("C:\\git_cjonasl\\Sudoku\\sudokuBoard.ReturnSudoku.txt", str);
-
-                Utility.InitDirectory(dir + "\\debug");
-
-                if (File.Exists(dir + "\\Sudoku result.txt"))
-                {
-                    File.Delete(dir + "\\Sudoku result.txt");
-                }
-
-                if (File.Exists(dir + "\\Error occured.txt"))
-                {
-                    File.Delete(dir + "\\Error occured.txt");
-                }
-
-                sudokuIterator = new SudokuIterator();
-
-                iteration = 1;
-
-                while ((numberOfNewNumbersPossibleToSetInSudokuBoard != 0) && (!sudokuSolved))
-                {
-                    v = sudokuIterator.ReturnNewNumbersPossibleToSetInSudokuBoard(sudokuBoard, out numberOfNewNumbersPossibleToSetInSudokuBoard, out debugString);
-
-                    if (numberOfNewNumbersPossibleToSetInSudokuBoard != 0)
-                    {
-                        try
-                        {
-                            for (i = 0; i < 9; i++)
-                            {
-                                for (j = 0; j < 9; j++)
-                                {
-                                    if (v[i, j] != 0)
-                                    {
-                                        sudokuBoard.SetNumber(i, j, v[i, j]);
-                                    }
-                                }
-                            }
-
-                            Utility.CreateNewFile(dir + "\\debug\\Iteration" + iteration.ToString() + ".txt", debugString);
-                            sudokuSolved = sudokuBoard.SudokuIsSolved;
-                            iteration++;
-                        }
-                        catch(Exception ex)
-                        {
-                            Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}. Error message: {1}", iteration.ToString(), ex.Message));
-                        }
-                    }
-                    else
-                    {
-                        Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}.", iteration.ToString()));
-                    }
-                }
-
-                if (sudokuSolved)
-                {
-                    Utility.CreateNewFile(dir + "\\Sudoku result.txt", sudokuBoard.SudokuBoardString);
-                }
-            }
         }
     }
 
@@ -289,219 +252,7 @@ namespace Sudoku
         }
     }
 
-    public class SudokuBoard
-    {
-        private int[,] _rows, _columns, _squares;
-        private int _numberOfBoardEntriesSet;
-
-        public SudokuBoard()
-        {
-            _rows = new int[9, 9];
-            _columns = new int[9, 9];
-            _squares = new int[9, 9];
-            _numberOfBoardEntriesSet = 0;
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    _rows[i, j] = 0;
-                    _columns[i, j] = 0;
-                    _squares[i, j] = 0;
-                }
-            }
-        }
-
-        private bool RowHasNumberInAnyEntry(int rowIndex, int number)
-        {
-            bool returnValue = false;
-            int i = 0;
-
-            if ((rowIndex < 0) || (rowIndex > 8))
-            {
-                throw new Exception("Error in method RowHasNumberInAnyEntry! Row index must be an integer between 0 and 8.");
-            }
-
-            if ((number < 1) || (number > 9))
-            {
-                throw new Exception("Error in method RowHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
-            }
-
-            while ((!returnValue) && (i < 9))
-            {
-                if (_rows[rowIndex, i] == number)
-                {
-                    returnValue = true;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            return returnValue;
-        }
-
-        private bool ColumnHasNumberInAnyEntry(int columnIndex, int number)
-        {
-            bool returnValue = false;
-            int i = 0;
-
-            if ((columnIndex < 0) || (columnIndex > 8))
-            {
-                throw new Exception("Error in method ColumnHasNumberInAnyEntry! Column index must be an integer between 0 and 8.");
-            }
-
-            if ((number < 1) || (number > 9))
-            {
-                throw new Exception("Error in method ColumnHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
-            }
-
-            while ((!returnValue) && (i < 9))
-            {
-                if (_columns[columnIndex, i] == number)
-                {
-                    returnValue = true;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            return returnValue;
-        }
-
-        private bool SquareHasNumberInAnyEntry(int squareIndex, int number)
-        {
-            bool returnValue = false;
-            int i = 0;
-
-            if ((squareIndex < 0) || (squareIndex > 8))
-            {
-                throw new Exception("Error in method SquareHasNumberInAnyEntry! Square index must be an integer between 0 and 8.");
-            }
-
-            if ((number < 1) || (number > 9))
-            {
-                throw new Exception("Error in method SquareHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
-            }
-
-            while ((!returnValue) && (i < 9))
-            {
-                if (_squares[squareIndex, i] == number)
-                {
-                    returnValue = true;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            return returnValue;
-        }
-
-        public bool CanSetNumber(int rowIndex, int columnIndex, int number)
-        {
-            int squareIndex;
-
-            squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-
-            return !RowHasNumberInAnyEntry(rowIndex, number) && !ColumnHasNumberInAnyEntry(columnIndex, number) && !SquareHasNumberInAnyEntry(squareIndex, number);
-        }
-
-        public void SetNumber(int rowIndex, int columnIndex, int number)
-        {
-            int squareIndex, squareSequenceIndex;
-
-            if (_rows[rowIndex, columnIndex] != 0)
-            {
-                throw new Exception("Error in method SetNumber! A number is already set in row " + (rowIndex + 1).ToString() + " column " + (columnIndex + 1).ToString());
-            }
-
-            if ((rowIndex < 0) || (rowIndex > 8))
-            {
-                throw new Exception("Error in method SetNumber! Row index must be an integer between 0 and 8.");
-            }
-
-            if ((columnIndex < 0) || (columnIndex > 8))
-            {
-                throw new Exception("Error in method SetNumber! Column index must be an integer between 0 and 8.");
-            }
-
-            if ((number < 1) || (number > 9))
-            {
-                throw new Exception("Error in method SetNumber! Number to set must be an integer between 1 and 9.");
-            }
-
-            if (RowHasNumberInAnyEntry(rowIndex, number))
-            {
-                throw new Exception("Error in method SetNumber! There is alreday a number " + number.ToString() + " in row " + (rowIndex + 1).ToString());
-            }
-
-            if (ColumnHasNumberInAnyEntry(columnIndex, number))
-            {
-                throw new Exception("Error in method SetNumber! There is alreday a number " + number.ToString() + " in column " + (columnIndex + 1).ToString());
-            }
-
-            squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-
-            if (SquareHasNumberInAnyEntry(squareIndex, number))
-            {
-                throw new Exception("Error in method SetNumber! There is alreday a number " + number.ToString() + " in squre " + (squareIndex + 1).ToString());
-            }
-
-            _rows[rowIndex, columnIndex] = number;
-            _columns[columnIndex, rowIndex] = number;
-
-            squareSequenceIndex = (3 * (rowIndex % 3)) + (columnIndex % 3);
-            _squares[squareIndex, squareSequenceIndex] = number;
-
-            _numberOfBoardEntriesSet++;
-        }
-
-        public int ReturnNumber(int rowIndex, int columnIndex)
-        {
-            return _rows[rowIndex, columnIndex];
-        }
-
-        public bool NumberIsSet(int rowIndex, int columnIndex)
-        {
-            return _rows[rowIndex, columnIndex] != 0;
-        }
-
-        public bool SudokuIsSolved
-        {
-            get { return _numberOfBoardEntriesSet == 81; }
-        }
-
-        public string SudokuBoardString
-        {
-            get
-            {
-                StringBuilder sb = new StringBuilder();
-                int i, j;
-
-                for (i = 0; i < 9; i++)
-                {
-                    for (j = 0; j < 9; j++)
-                    {
-                        if (j == 8)
-                        {
-                            sb.Append(string.Format("{0}\r\n", _rows[i, j].ToString()));
-                        }
-                        else
-                        {
-                            sb.Append(string.Format("{0} ", _rows[i, j].ToString()));
-                        }
-                    }
-                }
-
-                return sb.ToString().TrimEnd();
-            }
-        }
-    }
+    
 
     /// <summary>
     /// Item is one of 1, 2, 3, 4, 5, 6, 7, 8, 9
