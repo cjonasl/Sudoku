@@ -49,7 +49,6 @@
             this.buttonBrowse.TabIndex = 0;
             this.buttonBrowse.Text = "Browse";
             this.buttonBrowse.UseVisualStyleBackColor = true;
-            this.buttonBrowse.Click += new System.EventHandler(this.button1_Click);
             // 
             // textBox1
             // 
@@ -113,6 +112,7 @@
             this.buttonRun.TabIndex = 6;
             this.buttonRun.Text = "Run";
             this.buttonRun.UseVisualStyleBackColor = true;
+            this.buttonRun.Click += new System.EventHandler(this.buttonRun_Click);
             // 
             // textBoxInfo
             // 
