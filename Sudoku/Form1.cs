@@ -504,6 +504,7 @@ namespace Sudoku
     }
 
     /// <summary>
+    /// Help class to hold a data structure
     /// Item is one of 1, 2, 3, 4, 5, 6, 7, 8, 9
     /// </summary>
     public class SudokuPossibleToSetItem
