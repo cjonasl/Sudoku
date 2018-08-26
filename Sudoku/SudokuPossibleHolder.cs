@@ -5,13 +5,13 @@ namespace Sudoku
 {
     public class SudokuPossibleHolder
     {
-        private int _row, _column, _numberOfPossibleItems;
+        private int _rowIndex, _columnIndex, _numberOfPossibleItems;
         private int[] _possibleItems;
 
-        public SudokuPossibleHolder(int row, int column, int numberOfPossibleItems, int[] possibleItems)
+        public SudokuPossibleHolder(int rowIndex, int columnIndex, int numberOfPossibleItems, int[] possibleItems)
         {
-            _row = row;
-            _column = column;
+            _rowIndex = rowIndex;
+            _columnIndex = columnIndex;
             _numberOfPossibleItems = numberOfPossibleItems;
 
             _possibleItems = new int[numberOfPossibleItems];
@@ -45,13 +45,13 @@ namespace Sudoku
 
         public override string ToString()
         {
-            return string.Format("[{0}, {1}, {2}]", _row.ToString(), _column.ToString(), PossibleItemsString());
+            return string.Format("[{0}, {1}, {2}]", (_rowIndex + 1).ToString(), (_columnIndex + 1).ToString(), PossibleItemsString());
         }
 
-        public int ReturnItem(Random r)
+        public ThreeTupleOfIntegers ReturnItem(Random r)
         {
             int n = r.Next(_numberOfPossibleItems);
-            return _possibleItems[n];
+            return new ThreeTupleOfIntegers(_rowIndex, _columnIndex, _possibleItems[n]);
         }
     }
 }

@@ -15,9 +15,9 @@ namespace Sudoku
             _sudokuPossibleHolders = new ArrayList();
         }
 
-        public void Add(int row, int column, int[] possibleItems)
+        public void Add(int rowIndex, int columnIndex, int[] possibleItems)
         {
-            _sudokuPossibleHolders.Add(new SudokuPossibleHolder(row, column, _numberOfPossibleItems, possibleItems));
+            _sudokuPossibleHolders.Add(new SudokuPossibleHolder(rowIndex, columnIndex, _numberOfPossibleItems, possibleItems));
         }
 
         public override string ToString()
@@ -32,7 +32,7 @@ namespace Sudoku
             return sb.ToString().TrimEnd();
         }
 
-        public int ReturnItem(Random r)
+        public ThreeTupleOfIntegers ReturnItem(Random r)
         {
             int n = r.Next(_sudokuPossibleHolders.Count);
             return ((SudokuPossibleHolder)_sudokuPossibleHolders[n]).ReturnItem(r);

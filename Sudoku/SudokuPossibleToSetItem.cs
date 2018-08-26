@@ -13,7 +13,7 @@ namespace Sudoku
     {
         public int[,,] rows, columns, squares;
         public int[,] numberOfPossibleItemsRows, numberOfPossibleItemsColumns, numberOfPossibleItemsSquares;
-        public int totalNumberOfItemsPossibleToSet;
+        public int totalNumberOfItemsPossibleToSetWithoutCausingConflict;
 
         public SudokuPossibleToSetItem()
         {
@@ -29,7 +29,7 @@ namespace Sudoku
         {
             int i, j, k, squareIndex, squareSequenceIndex;
 
-            totalNumberOfItemsPossibleToSet = 0;
+            totalNumberOfItemsPossibleToSetWithoutCausingConflict = 0;
 
             for (i = 0; i < 9; i++)
             {
@@ -48,7 +48,7 @@ namespace Sudoku
                     squareIndex = (3 * (i / 3)) + (j / 3);
                     squareSequenceIndex = (3 * (i % 3)) + (j % 3);
 
-                    if (!sudokuBoard.NumberIsSet(i, j))
+                    if (!sudokuBoard.ItemIsSet(i, j))
                     {
                         numberOfPossibleItemsRows[i, j] = 0;
                         numberOfPossibleItemsColumns[j, i] = 0;
@@ -67,12 +67,107 @@ namespace Sudoku
                                 squares[squareIndex, squareSequenceIndex, numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]] = k;
                                 numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]++;
 
-                                totalNumberOfItemsPossibleToSet++;
+                                totalNumberOfItemsPossibleToSetWithoutCausingConflict++;
                             }
                         }
                     }
                 }
             }
+
+            CheckProcess();
+        }
+
+        private void CheckProcess()
+        {
+            int squareIndex, squareSequenceIndex, a, b, c;
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    squareIndex = (3 * (i / 3)) + (j / 3);
+                    squareSequenceIndex = (3 * (i % 3)) + (j % 3);
+
+                    if (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[i, j])
+                    {
+                        throw new Exception("Exception in CheckProcess: (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[i, j])");
+                    }
+                    else
+                    {
+                        if (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex])
+                        {
+                            throw new Exception("Exception in CheckProcess: (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex])");
+                        }
+                    }
+
+                    if (numberOfPossibleItemsRows[i, j] > 0)
+                    {
+                        for(int k = 0; k < numberOfPossibleItemsRows[i, j]; k++)
+                        {
+                            a = rows[i, j, k];
+                            b = columns[j, i, k];
+                            c = squares[squareIndex, squareSequenceIndex, k];
+
+                            if (a != b)
+                            {
+                                throw new Exception("Exception in CheckProcess: (a != b)");
+                            }
+                            else
+                            {
+                                if (a != c)
+                                {
+                                    throw new Exception("Exception in CheckProcess: (a != c)");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder("SudokuPossibleToSetItem:\r\n\r\n");
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (numberOfPossibleItemsColumns[i, j] == -1)
+                    {
+                        sb.Append("Item already set\r\n");
+                    }
+                    else
+                    {
+                        sb.Append(string.Format("[{0}, {1}]: ", i + 1, j + 1));
+                        sb.Append("{");
+
+                        for (int k = 0; k < numberOfPossibleItemsColumns[i, j]; k++)
+                        {
+                            if (k == 0)
+                            {
+                                sb.Append(rows[i, j, k].ToString());
+                            }
+                            else
+                            {
+                                sb.Append(", " + rows[i, j, k].ToString());
+                            }
+
+                            if (k == (numberOfPossibleItemsColumns[i, j] - 1))
+                            {
+                                sb.Append("}\r\n");
+                            }
+                        }
+                    }
+                }
+
+                if (i < 8)
+                {
+                    sb.Append("\r\n");
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

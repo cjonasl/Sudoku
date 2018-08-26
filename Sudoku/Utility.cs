@@ -2,18 +2,20 @@
 using System.Collections;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 
 namespace Sudoku
 {
     public static class Utility
     {
-        public static SudokuBoard ReturnSudokuBoard(string sudoku, out string errorMessage)
+        public static SudokuBoard ReturnSudokuBoard(string sudoku, out ArrayList originalData, out string errorMessage)
         {
             string[] u, v;
             bool noErrorFound;
             int i, j, n;
 
             errorMessage = null;
+            originalData = new ArrayList();
 
             SudokuBoard sudokuBoard = new SudokuBoard();
 
@@ -55,11 +57,12 @@ namespace Sudoku
                                 errorMessage = "The integer " + v[j - 1] + " in row " + i.ToString() + " and column " + j.ToString() + " is not in the range 0-9";
                                 noErrorFound = false;
                             }
-                            else
+                            else if (n != 0)
                             {
                                 try
                                 {
                                     sudokuBoard.SetNumber(i - 1, j - 1, n);
+                                    originalData.Add(new ThreeTupleOfIntegers(i - 1, j - 1, n));
                                 }
                                 catch(Exception e)
                                 {
@@ -82,6 +85,23 @@ namespace Sudoku
             }
 
             return sudokuBoard;
+        }
+
+        public static string ReturnSudokuString(TextBox[,] sudokuCells)
+        {
+            StringBuilder sb = new StringBuilder();
+            string str;
+
+            for(int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    str = (j <= 7) ? " " : "\r\n";
+                    sb.Append(string.Format("{0}{1}", sudokuCells[i, j].Text, str));
+                }
+            }
+
+            return sb.ToString().TrimEnd();
         }
 
         public static void CreateNewFile(string fileNameFullPath, string fileContent)

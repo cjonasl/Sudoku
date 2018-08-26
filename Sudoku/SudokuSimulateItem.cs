@@ -8,32 +8,17 @@ namespace Sudoku
     public class SudokuSimulateItem
     {
         private CollectionSudokuPossibleHolder[] _collectionSudokuPossibleHolder;
-        private string _debugDirectory;
+
         private int _numberOfCallsToReturnItem;
 
         public SudokuSimulateItem()
         {
             _collectionSudokuPossibleHolder = new CollectionSudokuPossibleHolder[8];
-            _debugDirectory = ConfigurationManager.AppSettings["DebugDirectory"] + "\\SudokuSimulateItem";
             _numberOfCallsToReturnItem = 0;
 
             for (int i = 0; i < 8; i++)
             {
                 _collectionSudokuPossibleHolder[i] = new CollectionSudokuPossibleHolder(2 + i);
-            }
-
-            if (!Directory.Exists(_debugDirectory))
-            {
-                Directory.CreateDirectory(_debugDirectory);
-            }
-            else
-            {
-                string[] files = Directory.GetFiles(_debugDirectory);
-
-                foreach (string file in files)
-                {
-                    File.Delete(file);
-                }
             }
         }
 
@@ -49,11 +34,11 @@ namespace Sudoku
             return v;
         }
 
-        public int ReturnItem(Random r, SudokuPossibleToSetItem sudokuPossibleToSetItem)
+        public ThreeTupleOfIntegers ReturnItem(Random r, SudokuPossibleToSetItem sudokuPossibleToSetItem, out string debugString)
         {
-            int item, minNumberOfPossibleItemsToSet = 9;
-            string fileNameFullPath;
+            int minNumberOfPossibleItemsToSet = 9;
             StringBuilder sb;
+            ThreeTupleOfIntegers item;
 
             _numberOfCallsToReturnItem++;
 
@@ -73,7 +58,10 @@ namespace Sudoku
                             minNumberOfPossibleItemsToSet = sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j];
                         }
 
-                        _collectionSudokuPossibleHolder[sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] - 2].Add(i + 1, j + 1, ReturnIntArray(sudokuPossibleToSetItem.rows, i, j));
+                        if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] >= 2)
+                        {
+                            _collectionSudokuPossibleHolder[sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] - 2].Add(i, j, ReturnIntArray(sudokuPossibleToSetItem.rows, i, j));
+                        }
                     }
                 }
             }
@@ -87,8 +75,7 @@ namespace Sudoku
                 sb.Append(_collectionSudokuPossibleHolder[i].ToString() + "\r\n");
             }
 
-            fileNameFullPath = _debugDirectory + "\\" + string.Format("ReturnItem{0}.txt", _numberOfCallsToReturnItem.ToString());
-            Utility.CreateNewFile(fileNameFullPath, sb.ToString().TrimEnd());
+            debugString = sb.ToString().TrimEnd();
 
             return item;
         }

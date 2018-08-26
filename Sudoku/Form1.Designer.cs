@@ -32,7 +32,7 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.listBox1 = new System.Windows.Forms.ListBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBoxDataFromFile = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.buttonRun = new System.Windows.Forms.Button();
             this.textBoxInfo = new System.Windows.Forms.TextBox();
@@ -49,6 +49,7 @@
             this.buttonBrowse.TabIndex = 0;
             this.buttonBrowse.Text = "Browse";
             this.buttonBrowse.UseVisualStyleBackColor = true;
+            this.buttonBrowse.Click += new System.EventHandler(this.buttonBrowse_Click);
             // 
             // textBox1
             // 
@@ -82,14 +83,14 @@
             this.listBox1.Size = new System.Drawing.Size(132, 344);
             this.listBox1.TabIndex = 3;
             // 
-            // textBox2
+            // textBoxDataFromFile
             // 
-            this.textBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox2.Location = new System.Drawing.Point(138, 17);
-            this.textBox2.Margin = new System.Windows.Forms.Padding(4);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(851, 24);
-            this.textBox2.TabIndex = 4;
+            this.textBoxDataFromFile.Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxDataFromFile.Location = new System.Drawing.Point(138, 17);
+            this.textBoxDataFromFile.Margin = new System.Windows.Forms.Padding(4);
+            this.textBoxDataFromFile.Name = "textBoxDataFromFile";
+            this.textBoxDataFromFile.Size = new System.Drawing.Size(851, 24);
+            this.textBoxDataFromFile.TabIndex = 4;
             // 
             // label1
             // 
@@ -145,7 +146,7 @@
             this.Controls.Add(this.textBoxInfo);
             this.Controls.Add(this.buttonRun);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.textBoxDataFromFile);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.textBox1);
@@ -166,7 +167,7 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBoxDataFromFile;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button buttonRun;
         private System.Windows.Forms.TextBox textBoxInfo;

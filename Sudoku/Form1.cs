@@ -10,7 +10,7 @@ namespace Sudoku
 {
     public partial class Form1 : Form
     {
-        private string dir = "C:\\git_cjonasl\\Sudoku";
+        private TextBox[,] sudokuCells;
 
         public Form1()
         {
@@ -23,8 +23,7 @@ namespace Sudoku
             str += "Position 7: Total number of items possible to set without              violation\r\nPosition 8: Simulated one item, true or false (if true                 then \"Total number of item(s) set in ite-                  ration\" must be 0)";
             this.textBoxInfo.Text = str;
             this.textBoxInfo.ReadOnly = true;
-
-
+            this.buttonNew.Enabled = false;
         }
 
         private void CreateSudokuBoardInTheForm()
@@ -39,29 +38,80 @@ namespace Sudoku
             const int EXTRA_SPACE_BETWEEN_SQUARES_Y = 7;
             int x, y;
 
-            TextBox[,] textBoxes = new TextBox[9, 9];
+            sudokuCells = new TextBox[9, 9];
 
-            for(int i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    textBoxes[i, j] = new TextBox();
-                    textBoxes[i, j].Multiline = true;
-                    textBoxes[i, j].Name = string.Format("Row{0}Column{1}", i + 1, j + 1);
-                    textBoxes[i, j].Size = new Size(CELL_WIDTH, CELL_HEIGHT);
+                    sudokuCells[i, j] = new TextBox();
+                    sudokuCells[i, j].Multiline = true;
+                    sudokuCells[i, j].Name = string.Format("Row{0}Column{1}", i + 1, j + 1);
+                    sudokuCells[i, j].Size = new Size(CELL_WIDTH, CELL_HEIGHT);
                     x = START_X + (j * CELL_WIDTH) + (j * SPACE_BETWEEN_CELL_X) + (j / 3) * EXTRA_SPACE_BETWEEN_SQUARES_X;
                     y = START_Y + (i * CELL_HEIGHT) + (i * SPACE_BETWEEN_CELL_Y) + (i / 3) * EXTRA_SPACE_BETWEEN_SQUARES_Y;
-                    textBoxes[i, j].Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-                    textBoxes[i, j].Location = new Point(x, y);
-                    this.panel1.Controls.Add(textBoxes[i, j]);
+                    sudokuCells[i, j].Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                    sudokuCells[i, j].Location = new Point(x, y);
+                    this.panel1.Controls.Add(sudokuCells[i, j]);
                 }
             }
         }
 
         private void buttonRun_Click(object sender, EventArgs e)
         {
-            
+            string debugDirectory, errorMessage, sudoku = Utility.ReturnSudokuString(this.sudokuCells);
+            ArrayList originalData;
+            int maxTries;
+            SudokuBoard sudokuBoard = Utility.ReturnSudokuBoard(sudoku, out originalData, out errorMessage);
+
+            debugDirectory = ConfigurationManager.AppSettings["DebugDirectory"];
+            maxTries = int.Parse(ConfigurationManager.AppSettings["MaxTries"]);
+
+            if (errorMessage == null)
+            {
+                
+            }
+            else
+            {
+                MessageBox.Show("The sudoku board is incorrect! Error message: " + errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+        }
+
+        private void buttonBrowse_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            string sudoku, errorMessage;
+            SudokuBoard sudokuBoard;
+            int n;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                this.textBoxDataFromFile.Text = openFileDialog.FileName;
+                sudoku = Utility.ReturnFileContents(openFileDialog.FileName);
+                sudokuBoard = Utility.ReturnSudokuBoard(sudoku, out errorMessage);
+
+                if (errorMessage == null)
+                {
+                    for (int i = 0; i < 9; i++)
+                    {
+                        for (int j = 0; j < 9; j++)
+                        {
+                            n = sudokuBoard.ReturnNumber(i, j);
+                            sudokuCells[i, j].Text = n == 0 ? "" : n.ToString();
+                        }
+                    }
+                }
+                else
+                {
+                    this.textBoxDataFromFile.Clear();
+                    MessageBox.Show("The file is incorrect! Error message: " + errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                this.textBoxDataFromFile.Clear();
+            }
         }
     }
-
 }

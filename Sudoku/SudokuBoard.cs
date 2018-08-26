@@ -29,6 +29,8 @@ namespace Sudoku
             }
         }
 
+        public int NumberOfBoardEntriesSet { get { return _numberOfBoardEntriesSet; } }
+
         private bool RowHasNumberInAnyEntry(int rowIndex, int number)
         {
             bool returnValue = false;
@@ -178,12 +180,20 @@ namespace Sudoku
             _numberOfBoardEntriesSet++;
         }
 
-        public int ReturnNumber(int rowIndex, int columnIndex)
+        public int ReturnItem(int rowIndex, int columnIndex)
         {
             return _rows[rowIndex, columnIndex];
         }
 
-        public bool NumberIsSet(int rowIndex, int columnIndex)
+        public void Set(ThreeTupleOfIntegers[] items)
+        {
+            for(int i = 0; i < items.Length; i++)
+            {
+                this.SetNumber(items[i].rowIndex, items[i].columnIndex, items[i].item);
+            }
+        }
+
+        public bool ItemIsSet(int rowIndex, int columnIndex)
         {
             return _rows[rowIndex, columnIndex] != 0;
         }
