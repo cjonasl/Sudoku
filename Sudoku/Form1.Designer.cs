@@ -64,6 +64,7 @@
             // 
             // panel1
             // 
+            this.panel1.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Location = new System.Drawing.Point(33, 102);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
@@ -85,6 +86,7 @@
             // 
             // textBoxDataFromFile
             // 
+            this.textBoxDataFromFile.BackColor = System.Drawing.Color.White;
             this.textBoxDataFromFile.Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBoxDataFromFile.Location = new System.Drawing.Point(138, 17);
             this.textBoxDataFromFile.Margin = new System.Windows.Forms.Padding(4);
@@ -136,6 +138,7 @@
             this.buttonNew.TabIndex = 8;
             this.buttonNew.Text = "New";
             this.buttonNew.UseVisualStyleBackColor = true;
+            this.buttonNew.Click += new System.EventHandler(this.buttonNew_Click);
             // 
             // Form1
             // 

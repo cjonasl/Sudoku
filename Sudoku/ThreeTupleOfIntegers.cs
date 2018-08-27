@@ -19,7 +19,7 @@ namespace Sudoku
 
         public override string ToString()
         {
-            return string.Format("({0}, {1}, {2}", rowIndex + 1, columnIndex + 1, item);
+            return ("{" + string.Format("{0}, {1}, {2}", rowIndex + 1, columnIndex + 1, item) + "}");
         }
     }
 }

@@ -88,9 +88,9 @@ namespace Sudoku
                     squareIndex = (3 * (i / 3)) + (j / 3);
                     squareSequenceIndex = (3 * (i % 3)) + (j % 3);
 
-                    if (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[i, j])
+                    if (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[j, i])
                     {
-                        throw new Exception("Exception in CheckProcess: (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[i, j])");
+                        throw new Exception("Exception in CheckProcess: (numberOfPossibleItemsRows[i, j] != numberOfPossibleItemsColumns[j, i])");
                     }
                     else
                     {
@@ -133,16 +133,21 @@ namespace Sudoku
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    if (numberOfPossibleItemsColumns[i, j] == -1)
+                    sb.Append(string.Format("[{0}, {1}]: ", i + 1, j + 1));
+
+                    if (numberOfPossibleItemsRows[i, j] == -1)
                     {
-                        sb.Append("Item already set\r\n");
+                        sb.Append("Cell already set\r\n");
+                    }
+                    else if (numberOfPossibleItemsRows[i, j] == 0)
+                    {
+                        sb.Append("{ }\r\n");
                     }
                     else
-                    {
-                        sb.Append(string.Format("[{0}, {1}]: ", i + 1, j + 1));
+                    {                  
                         sb.Append("{");
 
-                        for (int k = 0; k < numberOfPossibleItemsColumns[i, j]; k++)
+                        for (int k = 0; k < numberOfPossibleItemsRows[i, j]; k++)
                         {
                             if (k == 0)
                             {
@@ -153,7 +158,7 @@ namespace Sudoku
                                 sb.Append(", " + rows[i, j, k].ToString());
                             }
 
-                            if (k == (numberOfPossibleItemsColumns[i, j] - 1))
+                            if (k == (numberOfPossibleItemsRows[i, j] - 1))
                             {
                                 sb.Append("}\r\n");
                             }

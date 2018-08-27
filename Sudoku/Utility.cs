@@ -90,14 +90,15 @@ namespace Sudoku
         public static string ReturnSudokuString(TextBox[,] sudokuCells)
         {
             StringBuilder sb = new StringBuilder();
-            string str;
+            string str, item;
 
             for(int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
                     str = (j <= 7) ? " " : "\r\n";
-                    sb.Append(string.Format("{0}{1}", sudokuCells[i, j].Text, str));
+                    item = string.IsNullOrEmpty(sudokuCells[i, j].Text) ? "0" : sudokuCells[i, j].Text;
+                    sb.Append(string.Format("{0}{1}", item, str));
                 }
             }
 
@@ -207,6 +208,74 @@ namespace Sudoku
             {
                 File.Delete(v[i]);
             }
+        }
+
+        public static void UpdateSudokuCells(TextBox[,] sudokuCells, ArrayList originalData, ArrayList result)
+        {
+            int i;
+            ThreeTupleOfIntegers ttoi;
+
+            for (i = 0; i < originalData.Count; i++)
+            {
+                ttoi = (ThreeTupleOfIntegers)originalData[i];
+                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].BackColor = System.Drawing.Color.LightGray;
+            }
+
+            for (i = 0; i < result.Count; i++)
+            {
+                ttoi = (ThreeTupleOfIntegers)result[i];
+                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].Text = ttoi.item.ToString();
+            }
+        }
+
+        public static void ResetBackcolor(TextBox[,] sudokuCells, ArrayList originalData)
+        {
+            int i;
+            ThreeTupleOfIntegers ttoi;
+
+            for (i = 0; i < originalData.Count; i++)
+            {
+                ttoi = (ThreeTupleOfIntegers)originalData[i];
+                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].BackColor = System.Drawing.Color.White;
+            }
+        }
+
+        public static void ClearSudokuCells(TextBox[,] sudokuCells)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    sudokuCells[i, j].Clear();
+                }
+            }
+        }
+
+        public static void AddIfNotExistsAlready(ArrayList v, int n)
+        {
+            if (v.IndexOf(n) == -1)
+            {
+                v.Add(n);
+            }
+        }
+
+        public static string ReturnCommaSeparatedStringOfIntegers(ArrayList v)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for(int i = 0; i < v.Count; i++)
+            {
+                if (i == 0)
+                {
+                    sb.Append(v[i].ToString());
+                }
+                else
+                {
+                    sb.Append(", " + v[i].ToString());
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

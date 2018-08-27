@@ -36,37 +36,32 @@ namespace Sudoku
 
         public ThreeTupleOfIntegers ReturnItem(Random r, SudokuPossibleToSetItem sudokuPossibleToSetItem, out string debugString)
         {
-            int minNumberOfPossibleItemsToSet = 9;
+            int minNumberOfPossibleItemsToSet = int.MaxValue;
             StringBuilder sb;
             ThreeTupleOfIntegers item;
 
             _numberOfCallsToReturnItem++;
 
-            for (int i = 0; i < 8; i++)
-            {
-                _collectionSudokuPossibleHolder[i].Reset();
-            }
-
             for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] != -1)
+                    if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] >= 2) 
                     {
                         if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] < minNumberOfPossibleItemsToSet)
                         {
                             minNumberOfPossibleItemsToSet = sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j];
                         }
 
-                        if (sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] >= 2)
-                        {
-                            _collectionSudokuPossibleHolder[sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] - 2].Add(i, j, ReturnIntArray(sudokuPossibleToSetItem.rows, i, j));
-                        }
+                        _collectionSudokuPossibleHolder[sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] - 2].Add(i, j, ReturnIntArray(sudokuPossibleToSetItem.rows, i, j));
                     }
                 }
             }
 
-            item = _collectionSudokuPossibleHolder[minNumberOfPossibleItemsToSet - 2].ReturnItem(r);
+            if (minNumberOfPossibleItemsToSet <= 9)
+                item = _collectionSudokuPossibleHolder[minNumberOfPossibleItemsToSet - 2].ReturnItem(r);
+            else
+                item = new ThreeTupleOfIntegers(-1, -1, 0);
 
             sb = new StringBuilder(string.Format("Simulate item {0}\r\n\r\n", item.ToString()));
 

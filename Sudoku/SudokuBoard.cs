@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sudoku
 {
@@ -16,6 +14,11 @@ namespace Sudoku
             _rows = new int[9, 9];
             _columns = new int[9, 9];
             _squares = new int[9, 9];
+            Init();
+        }
+
+        private void Init()
+        {
             _numberOfBoardEntriesSet = 0;
 
             for (int i = 0; i < 9; i++)
@@ -191,6 +194,25 @@ namespace Sudoku
             {
                 this.SetNumber(items[i].rowIndex, items[i].columnIndex, items[i].item);
             }
+        }
+
+        public void Set(ThreeTupleOfIntegers items)
+        {
+            this.SetNumber(items.rowIndex, items.columnIndex, items.item);
+        }
+
+        public void Reset(ArrayList originalData)
+        {
+            Init();
+
+            ThreeTupleOfIntegers[] items = new ThreeTupleOfIntegers[originalData.Count];
+
+            for(int i = 0; i < originalData.Count; i++)
+            {
+                items[i] = (ThreeTupleOfIntegers)originalData[i];
+            }
+
+            Set(items);
         }
 
         public bool ItemIsSet(int rowIndex, int columnIndex)
