@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Configuration;
 using System.Windows.Forms;
 using System.Collections;
@@ -11,7 +10,7 @@ namespace Sudoku
     public partial class Form1 : Form
     {
         private TextBox[,] _sudokuCells;
-        private ArrayList _resultStrings;
+        private ArrayList _resultStrings, _sudokuBoardStrings;
         private ArrayList _originalData;
         public Form1()
         {
@@ -20,8 +19,8 @@ namespace Sudoku
 
             string str = "Position 1: Iteration numner\r\nPosition 2: Numner of item(s) set in sudoku board\r\nPosition 3: Number of item(s) not set in sudoku board\r\n";
             str += "Position 4: Total number of item(s) set in iteration\r\nPosition 5: Total number of item(s) set by alone in cell\r\n";
-            str += "Position 6: Total number of item(s) set by alone possible              (in row, column and/or square)\r\n";
-            str += "Position 7: Total number of items possible to set without              causing conflict\r\nPosition 8: ";
+            str += "Position 6: Total number of item(s) set by alone possible                  (in row, column and/or square)\r\n";
+            str += "Position 7: Total number of items possible to set without                  causing conflict\r\nPosition 8: ";
             str += "Error not possible to set any item in cell\r\nPosition 9: Error not unique item alone possible\r\nPosition 10: Simulated one item (true or false)";
             this.textBoxInfo.Text = str;
             this.textBoxInfo.ReadOnly = true;
@@ -62,7 +61,8 @@ namespace Sudoku
         private void buttonRun_Click(object sender, EventArgs e)
         {
             string debugDirectory, errorMessage, sudoku = Utility.ReturnSudokuString(_sudokuCells);
-            int i;
+            ArrayList listBoxEntries;
+            int i, indexShowFirst;
             string maxTriesString;
             int maxNumberOfTries;
             SudokuBoard sudokuBoard;
@@ -104,17 +104,17 @@ namespace Sudoku
             if (errorMessage == null)
             {
                 SolveSudoku solveSudoku = new SolveSudoku(debugDirectory, maxNumberOfTries, sudokuBoard, _originalData, true);          
-                ArrayList result = solveSudoku.Process(out _resultStrings);
+                solveSudoku.Process(out _resultStrings, out _sudokuBoardStrings, out listBoxEntries, out indexShowFirst);
 
-                for(i = 1; i <= _resultStrings.Count; i++)
+                for (i = 0; i < _resultStrings.Count; i++)
                 {
-                    this.listBox1.Items.Add("Try" + i.ToString());
+                    this.listBox1.Items.Add((string)listBoxEntries[i]);
                 }
 
                 this.buttonNew.Enabled = true;
                 this.buttonRun.Enabled = false;
 
-                Utility.UpdateSudokuCells(_sudokuCells, _originalData, result);
+                Utility.UpdateSudokuCells(_sudokuCells, _originalData, (string)_sudokuBoardStrings[indexShowFirst], false);
 
                 if (sudokuBoard.SudokuIsSolved)
                 {
@@ -126,7 +126,7 @@ namespace Sudoku
                 }
 
                 this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
-                this.listBox1.SelectedIndex = 0;
+                this.listBox1.SelectedIndex = indexShowFirst;
             }
             else
             {
@@ -176,6 +176,7 @@ namespace Sudoku
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.textBox1.Text = (string)_resultStrings[listBox1.SelectedIndex];
+            Utility.UpdateSudokuCells(_sudokuCells, _originalData, (string)_sudokuBoardStrings[listBox1.SelectedIndex], true);
         }
 
         private void buttonNew_Click(object sender, EventArgs e)

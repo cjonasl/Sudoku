@@ -7,12 +7,16 @@ namespace Sudoku
     public class SudokuSolver
     {
         private OneStepSudokuSolver _oneStepSudokuSolver;
+        private SudokuPossibleToSetItem _sudokuPossibleToSetItem;
+        private SudokuBoard _sudokuBoard;
         private Random _random;
         private bool _isDebug;
 
-        public SudokuSolver(Random random, bool isDebug)
+        public SudokuSolver(Random random, SudokuBoard sudokuBoard, bool isDebug)
         {
-            _oneStepSudokuSolver = new OneStepSudokuSolver();
+            _sudokuPossibleToSetItem = new SudokuPossibleToSetItem();
+            _oneStepSudokuSolver = new OneStepSudokuSolver(sudokuBoard, _sudokuPossibleToSetItem);
+            _sudokuBoard = sudokuBoard;
             _random = random;
             _isDebug = isDebug;
         }
@@ -28,11 +32,11 @@ namespace Sudoku
          Position 8: Total number of errors (not possible to set any item in cell)
          Position 9: Simulated one item, true or false
          */
-        public ArrayList Process(string debugDirectory, SudokuBoard sudokuBoard, out string resultString)
+        public ArrayList Process(string debugDirectory, out string resultString)
         {
             //----- out parameter in call to _oneStepSudokuSolver.Process -----
-            int numberOfItemsitemsSetDueToAloneInCell;
-            int numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare;
+            int numberOfItemsSetDueToAloneInCell;
+            int numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare;
             int totalNumberOfItemsPossibleToSetWithoutCausingConflict;
             int numberOfErrorsNotPossibleToSetAnyItemInCell;
             int numberOfErrorsNotUniqueItemAlonePossible;
@@ -42,21 +46,23 @@ namespace Sudoku
 
             bool stopIteration = false;
             string str, fileNameFullPath;
+            int simulatedItems;
             ThreeTupleOfIntegers[] setInIteration;
             StringBuilder sb = new StringBuilder();
             ArrayList result = new ArrayList();
 
             int iteration = 0;
+            _sudokuPossibleToSetItem.Process(_sudokuBoard);
 
             while (!stopIteration)
             {
                 iteration++;
                 setInIteration = _oneStepSudokuSolver.Process
-                    (sudokuBoard,                 
+                    (_sudokuBoard,                 
                      _random, 
                      _isDebug,
-                     out numberOfItemsitemsSetDueToAloneInCell,
-                     out numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare,
+                     out numberOfItemsSetDueToAloneInCell,
+                     out numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare,
                      out totalNumberOfItemsPossibleToSetWithoutCausingConflict,
                      out numberOfErrorsNotPossibleToSetAnyItemInCell,
                      out numberOfErrorsNotUniqueItemAlonePossible,
@@ -66,20 +72,22 @@ namespace Sudoku
                 fileNameFullPath = (iteration < 10) ? (debugDirectory + "\\OneStepSudokuSolver0" + iteration.ToString() + ".txt") : (debugDirectory + "\\OneStepSudokuSolver" + iteration.ToString() + ".txt");
                 Utility.CreateNewFile(fileNameFullPath, debugString);
 
-                int totalSet = numberOfItemsitemsSetDueToAloneInCell + numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare;
+                simulatedItems = simulated ? 1 : 0;
 
-                if (!simulated && (setInIteration != null) && (setInIteration.Length != totalSet))
+                int totalSet = numberOfItemsSetDueToAloneInCell + numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare + numberOfErrorsNotUniqueItemAlonePossible + simulatedItems;
+
+                if ((setInIteration != null) && (setInIteration.Length != totalSet))
                 {
-                    throw new Exception("(setInIteration.Length != totalSet) in OneStepSudokuSolver!!!!");
+                    throw new Exception("((setInIteration != null) && (setInIteration.Length != totalSet))");
                 }
 
                 str = string.Format("({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})",
                     iteration,
-                    sudokuBoard.NumberOfBoardEntriesSet,
-                    81 - sudokuBoard.NumberOfBoardEntriesSet,
+                    _sudokuBoard.NumberOfCellsSet,
+                    81 - _sudokuBoard.NumberOfCellsSet,
                     totalSet,
-                    numberOfItemsitemsSetDueToAloneInCell,
-                    numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare,
+                    numberOfItemsSetDueToAloneInCell,
+                    numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare,
                     totalNumberOfItemsPossibleToSetWithoutCausingConflict,
                     numberOfErrorsNotPossibleToSetAnyItemInCell,
                     numberOfErrorsNotUniqueItemAlonePossible,
@@ -93,19 +101,9 @@ namespace Sudoku
                     }
                 }
 
-                if (simulated)
-                {
-                    if (totalSet != 0)
-                    {
-                        throw new Exception("(totalSet != 0) in OneStepSudokuSolver!!!!");
-                    }
-
-                    result.Add(setInIteration[0]);
-                }
-
                 sb.Append(str + "\r\n");
 
-                if (sudokuBoard.SudokuIsSolved || (totalNumberOfItemsPossibleToSetWithoutCausingConflict == 0))
+                if (_sudokuBoard.SudokuIsSolved || (totalNumberOfItemsPossibleToSetWithoutCausingConflict == 0))
                 {
                     stopIteration = true;
                 }

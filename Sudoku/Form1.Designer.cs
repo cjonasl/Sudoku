@@ -37,6 +37,7 @@
             this.buttonRun = new System.Windows.Forms.Button();
             this.textBoxInfo = new System.Windows.Forms.TextBox();
             this.buttonNew = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // buttonBrowse
@@ -55,11 +56,12 @@
             // 
             this.textBox1.BackColor = System.Drawing.SystemColors.Window;
             this.textBox1.Font = new System.Drawing.Font("Courier New", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox1.Location = new System.Drawing.Point(576, 100);
+            this.textBox1.Location = new System.Drawing.Point(610, 100);
             this.textBox1.Margin = new System.Windows.Forms.Padding(4);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(500, 577);
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox1.Size = new System.Drawing.Size(466, 577);
             this.textBox1.TabIndex = 1;
             // 
             // panel1
@@ -81,7 +83,7 @@
             this.listBox1.Location = new System.Drawing.Point(436, 100);
             this.listBox1.Margin = new System.Windows.Forms.Padding(4);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(132, 344);
+            this.listBox1.Size = new System.Drawing.Size(166, 344);
             this.listBox1.TabIndex = 3;
             // 
             // textBoxDataFromFile
@@ -125,7 +127,7 @@
             this.textBoxInfo.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxInfo.Multiline = true;
             this.textBoxInfo.Name = "textBoxInfo";
-            this.textBoxInfo.Size = new System.Drawing.Size(535, 225);
+            this.textBoxInfo.Size = new System.Drawing.Size(569, 225);
             this.textBoxInfo.TabIndex = 7;
             // 
             // buttonNew
@@ -140,11 +142,22 @@
             this.buttonNew.UseVisualStyleBackColor = true;
             this.buttonNew.Click += new System.EventHandler(this.buttonNew_Click);
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(436, 68);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(409, 16);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "In parentheses: Total set items in board, in original data, by program";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1094, 681);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.buttonNew);
             this.Controls.Add(this.textBoxInfo);
             this.Controls.Add(this.buttonRun);
@@ -175,6 +188,7 @@
         private System.Windows.Forms.Button buttonRun;
         private System.Windows.Forms.TextBox textBoxInfo;
         private System.Windows.Forms.Button buttonNew;
+        private System.Windows.Forms.Label label2;
     }
 }
 

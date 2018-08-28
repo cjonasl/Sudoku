@@ -7,7 +7,7 @@ namespace Sudoku
     public class SudokuBoard
     {
         private int[,] _rows, _columns, _squares;
-        private int _numberOfBoardEntriesSet;
+        private int _numberOfCellsSet;
 
         public SudokuBoard()
         {
@@ -19,7 +19,7 @@ namespace Sudoku
 
         private void Init()
         {
-            _numberOfBoardEntriesSet = 0;
+            _numberOfCellsSet = 0;
 
             for (int i = 0; i < 9; i++)
             {
@@ -32,26 +32,26 @@ namespace Sudoku
             }
         }
 
-        public int NumberOfBoardEntriesSet { get { return _numberOfBoardEntriesSet; } }
+        public int NumberOfCellsSet { get { return _numberOfCellsSet; } }
 
-        private bool RowHasNumberInAnyEntry(int rowIndex, int number)
+        private bool RowHasItemInAnyCell(int rowIndex, int item)
         {
             bool returnValue = false;
             int i = 0;
 
             if ((rowIndex < 0) || (rowIndex > 8))
             {
-                throw new Exception("Error in method RowHasNumberInAnyEntry! Row index must be an integer between 0 and 8.");
+                throw new Exception("Error in method RowHasItemInAnyCell! Row index must be an integer between 0 and 8.");
             }
 
-            if ((number < 1) || (number > 9))
+            if ((item < 1) || (item > 9))
             {
-                throw new Exception("Error in method RowHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
+                throw new Exception("Error in method RowHasItemInAnyCell! Item to check must be an integer between 1 and 9.");
             }
 
             while ((!returnValue) && (i < 9))
             {
-                if (_rows[rowIndex, i] == number)
+                if (_rows[rowIndex, i] == item)
                 {
                     returnValue = true;
                 }
@@ -64,24 +64,24 @@ namespace Sudoku
             return returnValue;
         }
 
-        private bool ColumnHasNumberInAnyEntry(int columnIndex, int number)
+        private bool ColumnHasItemInAnyCell(int columnIndex, int item)
         {
             bool returnValue = false;
             int i = 0;
 
             if ((columnIndex < 0) || (columnIndex > 8))
             {
-                throw new Exception("Error in method ColumnHasNumberInAnyEntry! Column index must be an integer between 0 and 8.");
+                throw new Exception("Error in method ColumnHasItemInAnyCell! Column index must be an integer between 0 and 8.");
             }
 
-            if ((number < 1) || (number > 9))
+            if ((item < 1) || (item > 9))
             {
-                throw new Exception("Error in method ColumnHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
+                throw new Exception("Error in method ColumnHasItemInAnyCell! Item to check must be an integer between 1 and 9.");
             }
 
             while ((!returnValue) && (i < 9))
             {
-                if (_columns[columnIndex, i] == number)
+                if (_columns[columnIndex, i] == item)
                 {
                     returnValue = true;
                 }
@@ -94,24 +94,24 @@ namespace Sudoku
             return returnValue;
         }
 
-        private bool SquareHasNumberInAnyEntry(int squareIndex, int number)
+        private bool SquareHasItemInAnyCell(int squareIndex, int item)
         {
             bool returnValue = false;
             int i = 0;
 
             if ((squareIndex < 0) || (squareIndex > 8))
             {
-                throw new Exception("Error in method SquareHasNumberInAnyEntry! Square index must be an integer between 0 and 8.");
+                throw new Exception("Error in method SquareHasItemInAnyCell! Square index must be an integer between 0 and 8.");
             }
 
-            if ((number < 1) || (number > 9))
+            if ((item < 1) || (item > 9))
             {
-                throw new Exception("Error in method SquareHasNumberInAnyEntry! Number to check must be an integer between 1 and 9.");
+                throw new Exception("Error in method SquareHasItemInAnyCell! Item to check must be an integer between 1 and 9.");
             }
 
             while ((!returnValue) && (i < 9))
             {
-                if (_squares[squareIndex, i] == number)
+                if (_squares[squareIndex, i] == item)
                 {
                     returnValue = true;
                 }
@@ -124,63 +124,63 @@ namespace Sudoku
             return returnValue;
         }
 
-        public bool CanSetNumber(int rowIndex, int columnIndex, int number)
+        public bool CanSetItem(int rowIndex, int columnIndex, int item)
         {
             int squareIndex;
 
             squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
 
-            return !RowHasNumberInAnyEntry(rowIndex, number) && !ColumnHasNumberInAnyEntry(columnIndex, number) && !SquareHasNumberInAnyEntry(squareIndex, number);
+            return !RowHasItemInAnyCell(rowIndex, item) && !ColumnHasItemInAnyCell(columnIndex, item) && !SquareHasItemInAnyCell(squareIndex, item);
         }
 
-        public void SetNumber(int rowIndex, int columnIndex, int number)
+        public void SetItem(int rowIndex, int columnIndex, int item)
         {
             int squareIndex, squareSequenceIndex;
 
             if (_rows[rowIndex, columnIndex] != 0)
             {
-                throw new Exception("Error in method SetNumber! A number is already set in row " + (rowIndex + 1).ToString() + " column " + (columnIndex + 1).ToString());
+                throw new Exception("Error in method SetItem! An item is already set in row " + (rowIndex + 1).ToString() + " column " + (columnIndex + 1).ToString());
             }
 
             if ((rowIndex < 0) || (rowIndex > 8))
             {
-                throw new Exception("Error in method SetNumber! Row index must be an integer between 0 and 8.");
+                throw new Exception("Error in method SetItem! Row index must be an integer between 0 and 8.");
             }
 
             if ((columnIndex < 0) || (columnIndex > 8))
             {
-                throw new Exception("Error in method SetNumber! Column index must be an integer between 0 and 8.");
+                throw new Exception("Error in method SetItem! Column index must be an integer between 0 and 8.");
             }
 
-            if ((number < 1) || (number > 9))
+            if ((item < 1) || (item > 9))
             {
-                throw new Exception("Error in method SetNumber! Number to set must be an integer between 1 and 9.");
+                throw new Exception("Error in method SetItem! Item to set must be an integer between 1 and 9.");
             }
 
-            if (RowHasNumberInAnyEntry(rowIndex, number))
+            if (RowHasItemInAnyCell(rowIndex, item))
             {
-                throw new Exception(string.Format("Number {0} appears more than once in row {1}!", number, rowIndex + 1));
+                throw new Exception(string.Format("Item {0} appears more than once in row {1}!", item, rowIndex + 1));
             }
 
-            if (ColumnHasNumberInAnyEntry(columnIndex, number))
+            if (ColumnHasItemInAnyCell(columnIndex, item))
             {
-                throw new Exception(string.Format("Number {0} appears more than once in column {1}!", number, columnIndex + 1));
+                throw new Exception(string.Format("Item {0} appears more than once in column {1}!", item, columnIndex + 1));
             }
 
             squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
 
-            if (SquareHasNumberInAnyEntry(squareIndex, number))
+            if (SquareHasItemInAnyCell(squareIndex, item))
             {
-                throw new Exception(string.Format("Number {0} appears more than once in square {1}!", number, squareIndex + 1));
+                throw new Exception(string.Format("Item {0} appears more than once in square {1}!", item, squareIndex + 1));
             }
 
-            _rows[rowIndex, columnIndex] = number;
-            _columns[columnIndex, rowIndex] = number;
+            _rows[rowIndex, columnIndex] = item;
+            _columns[columnIndex, rowIndex] = item;
 
             squareSequenceIndex = (3 * (rowIndex % 3)) + (columnIndex % 3);
-            _squares[squareIndex, squareSequenceIndex] = number;
+            _squares[squareIndex, squareSequenceIndex] = item;
 
-            _numberOfBoardEntriesSet++;
+            _numberOfCellsSet++;
         }
 
         public int ReturnItem(int rowIndex, int columnIndex)
@@ -188,17 +188,17 @@ namespace Sudoku
             return _rows[rowIndex, columnIndex];
         }
 
-        public void Set(ThreeTupleOfIntegers[] items)
+        public void Set(ThreeTupleOfIntegers[] threeTupleOfIntegersCollection)
         {
-            for(int i = 0; i < items.Length; i++)
+            for(int i = 0; i < threeTupleOfIntegersCollection.Length; i++)
             {
-                this.SetNumber(items[i].rowIndex, items[i].columnIndex, items[i].item);
+                this.SetItem(threeTupleOfIntegersCollection[i].rowIndex, threeTupleOfIntegersCollection[i].columnIndex, threeTupleOfIntegersCollection[i].item);
             }
         }
 
         public void Set(ThreeTupleOfIntegers items)
         {
-            this.SetNumber(items.rowIndex, items.columnIndex, items.item);
+            this.SetItem(items.rowIndex, items.columnIndex, items.item);
         }
 
         public void Reset(ArrayList originalData)
@@ -222,7 +222,7 @@ namespace Sudoku
 
         public bool SudokuIsSolved
         {
-            get { return _numberOfBoardEntriesSet == 81; }
+            get { return _numberOfCellsSet == 81; }
         }
 
         public string SudokuBoardString

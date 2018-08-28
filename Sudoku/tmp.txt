@@ -27,7 +27,7 @@
                         {
                             if (v[i, j] != 0)
                             {
-                                sudokuBoard.SetNumber(i, j, v[i, j]);
+                                sudokuBoard.SetItem(i, j, v[i, j]);
                             }
                         }
                     }
@@ -70,7 +70,7 @@
                                 {
                                     if (v[i, j] != 0)
                                     {
-                                        sudokuBoard.SetNumber(i, j, v[i, j]);
+                                        sudokuBoard.SetItem(i, j, v[i, j]);
                                     }
                                 }
                             }
@@ -81,12 +81,12 @@
                         }
                         catch(Exception ex)
                         {
-                            Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}. Error message: {1}", iteration.ToString(), ex.Message));
+                            Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetItem in iterration {0}. Error message: {1}", iteration.ToString(), ex.Message));
                         }
                     }
                     else
                     {
-                        Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetNumber in iterration {0}.", iteration.ToString()));
+                        Utility.CreateNewFile(dir + "\\Error occured.txt", string.Format("An error occured when calling sudokuBoard.SetItem in iterration {0}.", iteration.ToString()));
                     }
                 }
 

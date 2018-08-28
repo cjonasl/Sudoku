@@ -61,7 +61,7 @@ namespace Sudoku
                             {
                                 try
                                 {
-                                    sudokuBoard.SetNumber(i - 1, j - 1, n);
+                                    sudokuBoard.SetItem(i - 1, j - 1, n);
                                     originalData.Add(new ThreeTupleOfIntegers(i - 1, j - 1, n));
                                 }
                                 catch(Exception e)
@@ -210,21 +210,36 @@ namespace Sudoku
             }
         }
 
-        public static void UpdateSudokuCells(TextBox[,] sudokuCells, ArrayList originalData, ArrayList result)
+        public static void UpdateSudokuCells(TextBox[,] sudokuCells, ArrayList originalData, string sudokuBoardString, bool skipBackColor)
         {
-            int i;
+            int i, j;
             ThreeTupleOfIntegers ttoi;
+            int[,] sudokuData;
 
-            for (i = 0; i < originalData.Count; i++)
+            if (!skipBackColor)
             {
-                ttoi = (ThreeTupleOfIntegers)originalData[i];
-                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].BackColor = System.Drawing.Color.LightGray;
+                for (i = 0; i < originalData.Count; i++)
+                {
+                    ttoi = (ThreeTupleOfIntegers)originalData[i];
+                    sudokuCells[ttoi.rowIndex, ttoi.columnIndex].BackColor = System.Drawing.Color.LightGray;
+                }
             }
 
-            for (i = 0; i < result.Count; i++)
+            sudokuData = ReturnSudokuData(sudokuBoardString);
+
+            for (i = 0; i < 9; i++)
             {
-                ttoi = (ThreeTupleOfIntegers)result[i];
-                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].Text = ttoi.item.ToString();
+                for (j = 0; j < 9; j++)
+                {
+                    if (sudokuData[i, j] == 0)
+                    {
+                        sudokuCells[i, j].Clear();
+                    }
+                    else
+                    {
+                        sudokuCells[i, j].Text = sudokuData[i, j].ToString();
+                    }
+                }
             }
         }
 
@@ -276,6 +291,36 @@ namespace Sudoku
             }
 
             return sb.ToString();
+        }
+
+        public static TwoTupleOfIntegers[] ReturnArrayOfTwoTupleOfIntegers(int rowIndex, int columnIndex)
+        {
+            int squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
+            ArrayList v = new ArrayList();
+            TwoTupleOfIntegers[] returnArray;
+            int i, j, si;
+
+            for(i = 0; i < 9; i++)
+            {
+                for (j = 0; j < 9; j++)
+                {
+                    si = (3 * (i / 3)) + (j / 3);
+
+                    if ((i == rowIndex) || (j == columnIndex) || (si == squareIndex))
+                    {
+                        v.Add(new TwoTupleOfIntegers(i, j));
+                    }
+                }
+            }
+
+            returnArray = new TwoTupleOfIntegers[v.Count];
+
+            for(i = 0; i < v.Count; i++)
+            {
+                returnArray[i] = (TwoTupleOfIntegers)v[i];
+            }
+
+            return returnArray;
         }
     }
 }

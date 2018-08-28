@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sudoku
 {
@@ -56,7 +53,7 @@ namespace Sudoku
 
                         for (k = 1; k <= 9; k++)
                         {
-                            if (sudokuBoard.CanSetNumber(i, j, k))
+                            if (sudokuBoard.CanSetItem(i, j, k))
                             {
                                 rows[i, j, numberOfPossibleItemsRows[i, j]] = k;
                                 numberOfPossibleItemsRows[i, j]++;
@@ -75,6 +72,53 @@ namespace Sudoku
             }
 
             CheckProcess();
+        }
+
+        public void Update(SudokuBoard sudokuBoard, int rowIndex, int columnIndex)
+        {
+            int n, i, j, k, squareIndex, squareSequenceIndex;
+            TwoTupleOfIntegers[] arrayOfTwoTupleOfIntegers = Utility.ReturnArrayOfTwoTupleOfIntegers(rowIndex, columnIndex);
+
+            for (n = 0; n < arrayOfTwoTupleOfIntegers.Length; n++)
+            {
+                i = arrayOfTwoTupleOfIntegers[n].rowIndex;
+                j = arrayOfTwoTupleOfIntegers[n].columnIndex;
+
+                squareIndex = (3 * (i / 3)) + (j / 3);
+                squareSequenceIndex = (3 * (i % 3)) + (j % 3);
+
+                if (!sudokuBoard.ItemIsSet(i, j))
+                {
+                    totalNumberOfItemsPossibleToSetWithoutCausingConflict -= numberOfPossibleItemsRows[i, j];
+                    numberOfPossibleItemsRows[i, j] = 0;
+                    numberOfPossibleItemsColumns[j, i] = 0;
+                    numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex] = 0;
+
+                    for (k = 1; k <= 9; k++)
+                    {
+                        if (sudokuBoard.CanSetItem(i, j, k))
+                        {
+                            rows[i, j, numberOfPossibleItemsRows[i, j]] = k;
+                            numberOfPossibleItemsRows[i, j]++;
+
+                            columns[j, i, numberOfPossibleItemsColumns[j, i]] = k;
+                            numberOfPossibleItemsColumns[j, i]++;
+
+                            squares[squareIndex, squareSequenceIndex, numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]] = k;
+                            numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex]++;
+
+                            totalNumberOfItemsPossibleToSetWithoutCausingConflict++;
+                        }
+                    }
+                }
+                else if (sudokuBoard.ItemIsSet(i, j) && (numberOfPossibleItemsRows[i, j] != -1))
+                {
+                    totalNumberOfItemsPossibleToSetWithoutCausingConflict -= numberOfPossibleItemsRows[i, j];
+                    numberOfPossibleItemsRows[i, j] = -1;
+                    numberOfPossibleItemsColumns[j, i] = -1;
+                    numberOfPossibleItemsSquares[squareIndex, squareSequenceIndex] = -1;
+                }
+            }
         }
 
         private void CheckProcess()

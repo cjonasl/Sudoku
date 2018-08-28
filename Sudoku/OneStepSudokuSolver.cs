@@ -8,9 +8,9 @@ namespace Sudoku
     {
         private SudokuPossibleToSetItem _sudokuPossibleToSetItem;
 
-        public OneStepSudokuSolver()
+        public OneStepSudokuSolver(SudokuBoard startSudokuBoard, SudokuPossibleToSetItem sudokuPossibleToSetItem)
         {
-            _sudokuPossibleToSetItem = new SudokuPossibleToSetItem();
+            _sudokuPossibleToSetItem = sudokuPossibleToSetItem;
         }
 
         private bool IsItemAloneInRow(int rowIndex, int item)
@@ -94,8 +94,8 @@ namespace Sudoku
             SudokuBoard sudokuBoard,
             Random r,
             bool isDebug,
-            out int numberOfItemsitemsSetDueToAloneInCell,
-            out int numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare,
+            out int numberOfItemsSetDueToAloneInCell,
+            out int numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare,
             out int totalNumberOfItemsPossibleToSetWithoutCausingConflict,
             out int numberOfErrorsNotPossibleToSetAnyItemInCell,
             out int numberOfErrorsNotUniqueItemAlonePossible,
@@ -103,23 +103,23 @@ namespace Sudoku
             out string debugString)
         {
             int i, j, k, n, numberOfItemsSetInIteration, squareIndex;
-            string str = "", commaSeparatedStringOfIntegers;
+            string str = "", commaSeparatedStringOfIntegers, sudokuPossibleToSetItemStr;
             StringBuilder sb1, sb2, tmpStringBuilder;
             ArrayList itemsSet = new ArrayList();
             ArrayList itemsPossibleToSetDueToAlonePossibleInRowColumnAndOrSquare = new ArrayList();
-            ThreeTupleOfIntegers[] result;
-            ThreeTupleOfIntegers item;
+            ThreeTupleOfIntegers[] ArrayOfThreeTupleOfIntegers;
+            ThreeTupleOfIntegers threeTupleOfIntegers;
             int[] tmpIntArray = new int[9];
-
             numberOfItemsSetInIteration = 0;
-            numberOfItemsitemsSetDueToAloneInCell = 0;
-            numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare = 0;
+            numberOfItemsSetDueToAloneInCell = 0;
+            numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare = 0;
             numberOfErrorsNotPossibleToSetAnyItemInCell = 0;
             numberOfErrorsNotUniqueItemAlonePossible = 0;
             simulated = false;
 
-            _sudokuPossibleToSetItem.Process(sudokuBoard);
             totalNumberOfItemsPossibleToSetWithoutCausingConflict = _sudokuPossibleToSetItem.totalNumberOfItemsPossibleToSetWithoutCausingConflict;
+            sudokuPossibleToSetItemStr = _sudokuPossibleToSetItem.ToString();
+
 
             if (totalNumberOfItemsPossibleToSetWithoutCausingConflict == 0)
             {
@@ -137,7 +137,7 @@ namespace Sudoku
             {
                 for (j = 0; j < 9; j++)
                 {
-                    item = null;
+                    threeTupleOfIntegers = null;
                     sb1.Append(string.Format("[{0}, {1}]: ", i + 1, j + 1));
                     squareIndex = (3 * (i / 3)) + (j / 3);
 
@@ -154,9 +154,9 @@ namespace Sudoku
                         }
                         else if (_sudokuPossibleToSetItem.numberOfPossibleItemsRows[i, j] == 1)
                         {
-                            numberOfItemsitemsSetDueToAloneInCell++;
-                            item = new ThreeTupleOfIntegers(i, j, _sudokuPossibleToSetItem.rows[i, j, 0]);
-                            itemsSet.Add(item);
+                            numberOfItemsSetDueToAloneInCell++;
+                            threeTupleOfIntegers = new ThreeTupleOfIntegers(i, j, _sudokuPossibleToSetItem.rows[i, j, 0]);
+                            itemsSet.Add(threeTupleOfIntegers);
                             numberOfItemsSetInIteration++;
 
                             sb1.Append(string.Format("CAN SET ITEM {0}. The item is alone in cell.\r\n", _sudokuPossibleToSetItem.rows[i, j, 0].ToString()));
@@ -201,12 +201,12 @@ namespace Sudoku
                                 n = (int)itemsPossibleToSetDueToAlonePossibleInRowColumnAndOrSquare[0];
 
                                 if (itemsPossibleToSetDueToAlonePossibleInRowColumnAndOrSquare.Count == 1)
-                                    numberOfItemsitemsSetDueToAlonePossibleInRowColumnAndOrSquare++;
+                                    numberOfItemsSetDueToAlonePossibleInRowColumnAndOrSquare++;
                                 else
                                     numberOfErrorsNotUniqueItemAlonePossible++;
 
-                                item = new ThreeTupleOfIntegers(i, j, n);
-                                itemsSet.Add(item);
+                                threeTupleOfIntegers = new ThreeTupleOfIntegers(i, j, n);
+                                itemsSet.Add(threeTupleOfIntegers);
 
                                 numberOfItemsSetInIteration++;
 
@@ -222,11 +222,11 @@ namespace Sudoku
                             }
                         }
                     }
-
-                    if (item != null)
+                    
+                    if (threeTupleOfIntegers != null)
                     {
-                        sudokuBoard.Set(item);
-                        _sudokuPossibleToSetItem.Process(sudokuBoard);
+                        sudokuBoard.Set(threeTupleOfIntegers);
+                        _sudokuPossibleToSetItem.Update(sudokuBoard, threeTupleOfIntegers.rowIndex, threeTupleOfIntegers.columnIndex);
                     }
                 }
 
@@ -236,18 +236,19 @@ namespace Sudoku
             if (numberOfItemsSetInIteration == 0)
             {
                 simulated = true;
-                result = new ThreeTupleOfIntegers[1];
+                ArrayOfThreeTupleOfIntegers = new ThreeTupleOfIntegers[1];
                 SudokuSimulateItem sudokuSimulateItem = new SudokuSimulateItem();
-                result[0] = sudokuSimulateItem.ReturnItem(r, _sudokuPossibleToSetItem, out str);
-                sudokuBoard.Set(result[0]);
+                ArrayOfThreeTupleOfIntegers[0] = sudokuSimulateItem.ReturnItem(r, _sudokuPossibleToSetItem, out str);
+                sudokuBoard.Set(ArrayOfThreeTupleOfIntegers[0]);
+                _sudokuPossibleToSetItem.Update(sudokuBoard, ArrayOfThreeTupleOfIntegers[0].rowIndex, ArrayOfThreeTupleOfIntegers[0].columnIndex);
             }
             else
             {
-                result = new ThreeTupleOfIntegers[numberOfItemsSetInIteration];
+                ArrayOfThreeTupleOfIntegers = new ThreeTupleOfIntegers[numberOfItemsSetInIteration];
 
                 for(i = 0; i < numberOfItemsSetInIteration; i++)
                 {
-                    result[i] = (ThreeTupleOfIntegers)itemsSet[i];
+                    ArrayOfThreeTupleOfIntegers[i] = (ThreeTupleOfIntegers)itemsSet[i];
                 }
 
                 if (isDebug)
@@ -259,19 +260,19 @@ namespace Sudoku
 
             if (simulated)
             {
-                debugString = _sudokuPossibleToSetItem.ToString() + sb1.ToString() + "\r\n\r\n----------------------------------- Simulate one item -----------------------------------\r\n\r\n" + str + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString;
+                debugString = sudokuPossibleToSetItemStr + sb1.ToString() + "\r\n\r\n----------------------------------- Simulate one item -----------------------------------\r\n\r\n" + str + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString;
             }
             else
             {
                 if (!isDebug)
-                    debugString = _sudokuPossibleToSetItem.ToString() + sb1.ToString() + sb2.ToString().Replace("####REPLACE_NUMBER_OF_ITEMS#####", numberOfItemsSetInIteration.ToString()).TrimEnd() + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString;
+                    debugString = sudokuPossibleToSetItemStr + sb1.ToString() + sb2.ToString().Replace("####REPLACE_NUMBER_OF_ITEMS#####", numberOfItemsSetInIteration.ToString()).TrimEnd() + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString;
                 else
                 {
-                    debugString = _sudokuPossibleToSetItem.ToString() + sb1.ToString() + sb2.ToString().Replace("####REPLACE_NUMBER_OF_ITEMS#####", numberOfItemsSetInIteration.ToString()).TrimEnd() + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString + "\r\n\r\n----------------------------------- DEBUG Simulate one item -----------------------------------\r\n\r\n" + str;
+                    debugString = sudokuPossibleToSetItemStr + sb1.ToString() + sb2.ToString().Replace("####REPLACE_NUMBER_OF_ITEMS#####", numberOfItemsSetInIteration.ToString()).TrimEnd() + "\r\n\r\n---------- Sudoku board after iteration ----------\r\n\r\n" + sudokuBoard.SudokuBoardString + "\r\n\r\n----------------------------------- DEBUG Simulate one item -----------------------------------\r\n\r\n" + str;
                 }
             }
 
-            return result;
+            return ArrayOfThreeTupleOfIntegers;
         }
     }
 }

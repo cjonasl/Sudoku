@@ -63,6 +63,7 @@
     <Compile Include="SudokuSimulateItem.cs" />
     <Compile Include="SudokuSolver.cs" />
     <Compile Include="ThreeTupleOfIntegers.cs" />
+    <Compile Include="TwoTupleOfIntegers.cs" />
     <Compile Include="Utility.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
