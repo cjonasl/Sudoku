@@ -57,6 +57,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolveSudoku.cs" />
+    <Compile Include="Sudoku2.cs" />
     <Compile Include="SudokuBoard.cs" />
     <Compile Include="SudokuPossibleHolder.cs" />
     <Compile Include="SudokuPossibleToSetItem.cs" />
