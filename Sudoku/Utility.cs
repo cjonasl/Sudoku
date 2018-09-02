@@ -181,15 +181,13 @@ namespace Sudoku
                 {
                     sb.Append(v[0].ToString());
                 }
-                else if (i == (v.Count - 1))
-                {
-                    sb.Append(", " + v[v.Count - 1].ToString() + "}");
-                }
                 else
                 {
                     sb.Append(", " + v[i].ToString());
                 }
             }
+
+            sb.Append("}");
 
             return sb.ToString();
         }

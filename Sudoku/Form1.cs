@@ -112,7 +112,8 @@ namespace Sudoku
                 }
 
                 this.buttonNew.Enabled = true;
-                this.buttonRun.Enabled = false;
+                this.buttonRun1.Enabled = false;
+                this.buttonRun2.Enabled = false;
 
                 Utility.UpdateSudokuCells(_sudokuCells, _originalData, (string)_sudokuBoardStrings[indexShowFirst], false);
 
@@ -179,6 +180,47 @@ namespace Sudoku
             Utility.UpdateSudokuCells(_sudokuCells, _originalData, (string)_sudokuBoardStrings[listBox1.SelectedIndex], true);
         }
 
+        private void buttonRun2_Click(object sender, EventArgs e)
+        {
+            string errorMessage, sudoku = Utility.ReturnSudokuString(_sudokuCells);
+            Sudoku.SudokuBoard sB = Utility.ReturnSudokuBoard(sudoku, out _originalData, out errorMessage);
+            Sudoku2.SudokuBoard sudokuBoard;
+            Sudoku2.Result result;
+
+            if (errorMessage == null)
+            {
+                sudokuBoard = new Sudoku2.SudokuBoard();
+                result = sudokuBoard.Process(_originalData, 10);
+
+                if (result.errorMessage != null)
+                {
+                    MessageBox.Show("Data is incorrect! Error message: " + result.errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else if (result.nothingSolved)
+                {
+                    MessageBox.Show("Unable to solve sudoku!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else if (result.partiallySolved)
+                {
+                    MessageBox.Show("Unable to completely solve sudoku!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                if ((result.partiallySolved) || (result.solved))
+                {
+                    Utility.UpdateSudokuCells(_sudokuCells, _originalData, result.sudokuString, false);
+                    this.buttonNew.Enabled = true;
+                    this.buttonRun1.Enabled = false;
+                    this.buttonRun2.Enabled = false;
+                }                  
+            }
+            else
+            {
+                MessageBox.Show("The sudoku board is incorrect! Error message: " + errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            this.buttonNew.Focus();
+        }
+
         private void buttonNew_Click(object sender, EventArgs e)
         {
             this.listBox1.SelectedIndexChanged -= new System.EventHandler(this.listBox1_SelectedIndexChanged);
@@ -188,7 +230,8 @@ namespace Sudoku
             Utility.ClearSudokuCells(_sudokuCells);
             this.textBox1.Clear();
             this.buttonNew.Enabled = false;
-            this.buttonRun.Enabled = true;
+            this.buttonRun1.Enabled = true;
+            this.buttonRun2.Enabled = true;
         }
     }
 }

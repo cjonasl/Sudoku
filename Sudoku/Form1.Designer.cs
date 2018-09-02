@@ -34,10 +34,11 @@
             this.listBox1 = new System.Windows.Forms.ListBox();
             this.textBoxDataFromFile = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.buttonRun = new System.Windows.Forms.Button();
+            this.buttonRun1 = new System.Windows.Forms.Button();
             this.textBoxInfo = new System.Windows.Forms.TextBox();
             this.buttonNew = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.buttonRun2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // buttonBrowse
@@ -107,17 +108,17 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "Data from file";
             // 
-            // buttonRun
+            // buttonRun1
             // 
-            this.buttonRun.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonRun.Location = new System.Drawing.Point(33, 68);
-            this.buttonRun.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonRun.Name = "buttonRun";
-            this.buttonRun.Size = new System.Drawing.Size(57, 26);
-            this.buttonRun.TabIndex = 6;
-            this.buttonRun.Text = "Run";
-            this.buttonRun.UseVisualStyleBackColor = true;
-            this.buttonRun.Click += new System.EventHandler(this.buttonRun_Click);
+            this.buttonRun1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonRun1.Location = new System.Drawing.Point(33, 68);
+            this.buttonRun1.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonRun1.Name = "buttonRun1";
+            this.buttonRun1.Size = new System.Drawing.Size(57, 26);
+            this.buttonRun1.TabIndex = 6;
+            this.buttonRun1.Text = "Run1";
+            this.buttonRun1.UseVisualStyleBackColor = true;
+            this.buttonRun1.Click += new System.EventHandler(this.buttonRun_Click);
             // 
             // textBoxInfo
             // 
@@ -133,7 +134,7 @@
             // buttonNew
             // 
             this.buttonNew.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonNew.Location = new System.Drawing.Point(111, 68);
+            this.buttonNew.Location = new System.Drawing.Point(163, 68);
             this.buttonNew.Margin = new System.Windows.Forms.Padding(4);
             this.buttonNew.Name = "buttonNew";
             this.buttonNew.Size = new System.Drawing.Size(57, 26);
@@ -152,15 +153,28 @@
             this.label2.TabIndex = 9;
             this.label2.Text = "In parentheses: Total set items in board, in original data, by program";
             // 
+            // buttonRun2
+            // 
+            this.buttonRun2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonRun2.Location = new System.Drawing.Point(98, 68);
+            this.buttonRun2.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonRun2.Name = "buttonRun2";
+            this.buttonRun2.Size = new System.Drawing.Size(57, 26);
+            this.buttonRun2.TabIndex = 10;
+            this.buttonRun2.Text = "Run2";
+            this.buttonRun2.UseVisualStyleBackColor = true;
+            this.buttonRun2.Click += new System.EventHandler(this.buttonRun2_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1094, 681);
+            this.Controls.Add(this.buttonRun2);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.buttonNew);
             this.Controls.Add(this.textBoxInfo);
-            this.Controls.Add(this.buttonRun);
+            this.Controls.Add(this.buttonRun1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBoxDataFromFile);
             this.Controls.Add(this.listBox1);
@@ -185,10 +199,11 @@
         private System.Windows.Forms.ListBox listBox1;
         private System.Windows.Forms.TextBox textBoxDataFromFile;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button buttonRun;
+        private System.Windows.Forms.Button buttonRun1;
         private System.Windows.Forms.TextBox textBoxInfo;
         private System.Windows.Forms.Button buttonNew;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button buttonRun2;
     }
 }
 
