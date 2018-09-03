@@ -275,29 +275,8 @@ namespace Sudoku2
 
         private void UpdateStructure(int rowIndex, int columnIndex, int squareIndex, int itemValue)
         {
-            int i;
+            int i, rwIndex, clmIndex, sqIndex;
             ArrayList cellsToUpdate;
-
-            //---------------- Debug -----------------------------
-            for (i = 0; i < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count; i++)
-            {
-                if (_possibleToSetRow[rowIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)
-                {
-                    throw new Exception("(_possibleToSetRow[rowIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)");
-                }
-
-                if (_possibleToSetColumn[columnIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)
-                {
-                    throw new Exception("(_possibleToSetColumn[columnIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)");
-                }
-
-
-                if (_possibleToSetSquare[squareIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)
-                {
-                    throw new Exception("(_possibleToSetSquare[squareIndex].IndexOf(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]) == -1)");
-                }
-            }
-            //-------------------------------------------------
 
             for (i = 0; i < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count; i++)
             {
@@ -310,7 +289,13 @@ namespace Sudoku2
 
             for (i = 0; i < cellsToUpdate.Count; i++)
             {
-                _cells[((TwoTupleOfIntegers)cellsToUpdate[i]).x][((TwoTupleOfIntegers)cellsToUpdate[i]).y].possibleItemValuesToSet.Remove(itemValue);
+                rwIndex = ((TwoTupleOfIntegers)cellsToUpdate[i]).x;
+                clmIndex = ((TwoTupleOfIntegers)cellsToUpdate[i]).y;
+                sqIndex = (3 * (rwIndex / 3)) + (clmIndex / 3);
+                _cells[rwIndex][clmIndex].possibleItemValuesToSet.Remove(itemValue);
+                _possibleToSetRow[rwIndex].Remove(itemValue);
+                _possibleToSetColumn[clmIndex].Remove(itemValue);
+                _possibleToSetSquare[sqIndex].Remove(itemValue);
             }
 
             _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
@@ -562,11 +547,6 @@ namespace Sudoku2
                         rowIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).x;
                         columnIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).y;
                         squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-
-                        if ((rowIndex == 5) && (columnIndex == 2))
-                        {
-                            int yyy = 0;
-                        }
 
                         cell.position.x = rowIndex;
                         cell.position.y = columnIndex;
