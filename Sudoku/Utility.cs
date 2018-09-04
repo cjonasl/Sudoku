@@ -148,9 +148,9 @@ namespace Sudoku
             return sudokuData;
         }
 
-        public static string ReturnString(int[] v, int n)
+        public static string ReturnString(int[] v, int n, char startChar = '{', char endChar = '}')
         {
-            StringBuilder sb = new StringBuilder("{");
+            StringBuilder sb = new StringBuilder(startChar.ToString());
 
             for (int i = 0; i < n; i++)
             {
@@ -158,15 +158,13 @@ namespace Sudoku
                 {
                     sb.Append(v[0].ToString());
                 }
-                else if (i == (n - 1))
-                {
-                    sb.Append(", " + v[n - 1].ToString() + "}");
-                }
                 else
                 {
                     sb.Append(", " + v[i].ToString());
                 }
             }
+
+            sb.Append(endChar.ToString());
 
             return sb.ToString();
         }

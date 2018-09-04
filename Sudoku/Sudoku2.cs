@@ -66,6 +66,8 @@ namespace Sudoku2
         private ArrayList _cellsRemainToSet, _dataSetBeforeSimulationHasBeenDone;
         private bool _simulationHasBeenDone;
         private TwoTupleOfIntegers[][] _squareIndex;
+        private Random _random;
+        private int _debugLopNr, _debugTry, _debugIteration;
 
         public SudokuBoard()
         {
@@ -100,7 +102,9 @@ namespace Sudoku2
             _dataSetBeforeSimulationHasBeenDone = new ArrayList();
             _simulationHasBeenDone = false;
 
-            //DebugPrintSquareIndex();
+            _random = new Random((int)(DateTime.Now.Ticks % (long)int.MaxValue));
+
+            _debugLopNr = 0;
         }
 
         private void DebugPrintSquareIndex()
@@ -209,7 +213,18 @@ namespace Sudoku2
         {
             int i, j, rowIdx, colIdx, sqIdx;
 
-            for(i = 0; i < 9; i++)
+            for (i = 0; i < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count; i++)
+            {
+
+                _numberOfItemsPossibleToSetRow[rowIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
+                _numberOfItemsPossibleToSetColumn[columnIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
+                _numberOfItemsPossibleToSetSquare[squareIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
+                _totalNumberOfItemsPossibleToSet -= 3;
+            }
+
+            _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
+
+            for (i = 0; i < 9; i++)
             {
                 if (_cells[rowIndex][i].itemValue == 0)
                 {
@@ -351,7 +366,7 @@ namespace Sudoku2
                 }
             }
 
-            _totalNumberOfItemsPossibleToSet = (81 * 9);
+            _totalNumberOfItemsPossibleToSet = (81 * 9 * 3);
         }
 
         private string SetCell(int rowIndex, int columnIndex, int itemValue)
@@ -373,9 +388,39 @@ namespace Sudoku2
                 return string.Format("Number {0} appears more than once in square {1}!", itemValue, squareIndex + 1);
             }
 
-            _cells[rowIndex][columnIndex].itemValue = itemValue;
+            //C:\tmp\Sudoku
+            StringBuilder sb = new StringBuilder(string.Format("Set [row, column, value] = [{0}, {1}, {2}]\r\n\r\n", (1 + rowIndex).ToString(), (1 + columnIndex).ToString(), itemValue.ToString()));
+            sb.Append("------------------ Debug data before ------------------\r\n" + ReturnDebugData() + "\r\n\r\n");
 
+            _cells[rowIndex][columnIndex].itemValue = itemValue;
             UpdateStructure(rowIndex, columnIndex, squareIndex, itemValue);
+
+            sb.Append("------------------ Debug data after ------------------\r\n" + ReturnDebugData());
+
+            _debugLopNr++;
+            Sudoku.Utility.CreateNewFile(string.Format("C:\\tmp\\Sudoku\\Print{0}_Try_{1}_Iteration_{2}.txt", _debugLopNr.ToString(), _debugTry.ToString(), _debugIteration.ToString()), sb.ToString());
+
+            //----------------- Debug ---------------------------------------------
+            int i, j, n1 = 0, n2 = 0;
+            for(i = 0; i < 9; i++)
+            {
+                for (j = 0; j < 9; j++)
+                {
+                    n1 += _cells[i][j].possibleItemValuesToSet.Count;
+                    n2 += _numberOfItemsPossibleToSetRow[i][j];
+                }
+            }
+
+            if (n1 != n2)
+            {
+                throw new Exception("n1 != n2");
+            }
+
+            if ((3 * n1) != _totalNumberOfItemsPossibleToSet)
+            {
+                throw new Exception("n1 != _totalNumberOfItemsPossibleToSet");
+            }
+            //---------------------------------------------------------------------
 
             return null;
         }
@@ -391,8 +436,6 @@ namespace Sudoku2
                 returnValue = SetCell(((Cell)data[i]).position.x, ((Cell)data[i]).position.y, ((Cell)data[i]).itemValue);
                 i++;
             }
-
-            //DebugPrintStructure();
 
             return returnValue;
         }
@@ -448,50 +491,58 @@ namespace Sudoku2
             return sb.ToString().TrimEnd();
         }
 
-        private void DebugPrintStructure()
+        private string ReturnDebugData()
         {
             int i, j;
             StringBuilder sb = new StringBuilder();
+
+            sb.Append(ReturnSudokuString());
+
+            sb.Append("\r\n\r\n");
 
             for (i = 1; i <= 9; i++)
             {
                 for (j = 1; j <= 9; j++)
                 {
-                    sb.Append(string.Format("[{0}, {1}]: {2} {3}\r\n", i.ToString(), j.ToString(), _cells[i - 1][j - 1].itemValue.ToString(), Sudoku.Utility.ReturnString(_cells[i - 1][j - 1].possibleItemValuesToSet)));
+                    sb.Append(string.Format("[{0}, {1}]: {2} {3}\r\n", i.ToString(), j.ToString(), _cells[i - 1][j - 1].itemValue.ToString() == "0" ? " " : _cells[i - 1][j - 1].itemValue.ToString(), Sudoku.Utility.ReturnString(_cells[i - 1][j - 1].possibleItemValuesToSet)));
                 }
 
                 sb.Append("\r\n");
             }
 
+            sb.Append(string.Format("TotalNumberOfItemsPossibleToSet = {0}", _totalNumberOfItemsPossibleToSet.ToString()));
+
+            sb.Append("\r\n\r\n");
+
             for (i = 1; i <= 9; i++)
             {
-                sb.Append(string.Format("Possible to set row[{0}]: {1}\r\n", i.ToString(), Sudoku.Utility.ReturnString(_possibleToSetRow[i - 1])));
+                sb.Append(string.Format("NumberOfItemsPossibleToSetRow[{0}]: {1}\r\n", i, Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetRow[i - 1], 9, '[', ']')));
             }
 
             sb.Append("\r\n");
 
             for (i = 1; i <= 9; i++)
             {
-                sb.Append(string.Format("Possible to set column[{0}]: {1}\r\n", i.ToString(), Sudoku.Utility.ReturnString(_possibleToSetColumn[i - 1])));
+                sb.Append(string.Format("NumberOfItemsPossibleToSetColumn[{0}]: {1}\r\n", i, Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetColumn[i - 1], 9, '[', ']')));
             }
 
             sb.Append("\r\n");
 
             for (i = 1; i <= 9; i++)
             {
-                sb.Append(string.Format("Possible to set square[{0}]: {1}\r\n", i.ToString(), Sudoku.Utility.ReturnString(_possibleToSetSquare[i - 1])));
+                sb.Append(string.Format("NumberOfItemsPossibleToSetSquare[{0}]: {1}\r\n", i, Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetSquare[i - 1], 9, '[', ']')));
             }
 
-            Sudoku.Utility.CreateNewFile("C:\\tmp\\Sudoku\\Sudoku2Structure_" + Guid.NewGuid().ToString() + ".txt", sb.ToString());
+            return sb.ToString().TrimEnd();
         }
 
-        private int LoopThroughListWithCellsThatRemainToSet()
+        private bool LoopThroughListWithCellsThatRemainToSet()
         {
-            int i, j, itemsSet, itemValue = 0, rowIndex, columnIndex, squareIndex;
-            bool findItemToSet;
+            int i, j, itemValue = 0, rowIndex, columnIndex, squareIndex;
+            bool findItemToSet, atLeastOneItemSet;
 
             i = 0;
-            itemsSet = 0;
+            atLeastOneItemSet = false;
 
             while (i < _cellsRemainToSet.Count)
             {
@@ -532,7 +583,7 @@ namespace Sudoku2
                         _dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), itemValue));
                     }
 
-                    itemsSet++;
+                    atLeastOneItemSet = true;
 
                     _cellsRemainToSet.RemoveAt(i);
                 }
@@ -542,22 +593,98 @@ namespace Sudoku2
                 }
             }
 
-            return itemsSet;
+            return atLeastOneItemSet;
+        }
+
+        private void SimulateOneItem()
+        {
+            int i, rowIndex, columnIndex, rowIdx, colIdx, minNumberPossibleToSetItems, randomNumber,  n;
+            int[] numberPossibleToSetItems = new int[8];
+            bool found;
+
+            for (i = 0; i < 8; i++)
+            {
+                numberPossibleToSetItems[i] = 0;
+            }
+
+            minNumberPossibleToSetItems = int.MaxValue;
+
+            for (i = 0; i < _cellsRemainToSet.Count; i++)
+            {
+                rowIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).x;
+                columnIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).y;
+
+                if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)
+                {
+                    throw new Exception("(_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)");
+                }
+                else if ((_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count > 1) && (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count <= minNumberPossibleToSetItems))
+                {
+                    if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count < minNumberPossibleToSetItems)
+                    {
+                        minNumberPossibleToSetItems = _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count;
+                    }
+
+                    numberPossibleToSetItems[_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count - 2]++;
+                }
+            }
+
+            if (minNumberPossibleToSetItems == int.MaxValue)
+            {
+                throw new Exception("(minNumberPossibleToSetItems == int.MaxValue)");
+            }
+
+            n = 0;
+            i = 0;
+            randomNumber = 1 + _random.Next(numberPossibleToSetItems[minNumberPossibleToSetItems - 2]);
+
+            while (n < randomNumber)
+            {
+                rowIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).x;
+                columnIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).y;
+
+                if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == minNumberPossibleToSetItems)
+                {
+                    n++;
+                }
+
+                if (n == randomNumber)
+                {
+                    SetCell(rowIndex, columnIndex, (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[_random.Next(minNumberPossibleToSetItems)]);
+                    _simulationHasBeenDone = true;
+
+                    found = false;
+                    i = 0;
+
+                    while (!found)
+                    {
+                        rowIdx = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).x;
+                        colIdx = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).y;
+
+                        if ((rowIdx == rowIndex) && (colIdx == columnIndex))
+                        {
+                            found = true;
+                            _cellsRemainToSet.RemoveAt(i);
+                        }
+
+                        i++;
+                    }
+                }
+
+                i++;
+            }
         }
 
         public Result Process(ArrayList originalData, int maxNumberOfTries)
         {
-            ArrayList data, dataSetBeforeSimulationHasBeenDone, cellsRemainToSet;
-            int i, j, n, randomNumber, rowIndex, columnIndex, squareIndex, minNumberPossibleToSetItems, itemsSet, numberOfTries = 0, maxNumberOfItemsSetInATry = 0;
+            ArrayList data;
+            int numberOfTries = 0, maxNumberOfItemsSetInATry = 0;
             int[] numberPossibleToSetItems = new int[8];
-            bool atLeastOneItemSet, simulationHasBeenDone, findItemToSet;
+            bool atLeastOneItemSet;
             string errorMessage, sudokuString = null;
-            Cell cell = new Cell(new TwoTupleOfIntegers(0, 0), 0);
-            Random random = new Random((int)(DateTime.Now.Ticks % (long)int.MaxValue));
 
-            itemsSet = 0;
-            simulationHasBeenDone = false;
-            dataSetBeforeSimulationHasBeenDone = new ArrayList();
+            _debugTry = 0;
+            _debugIteration = 0;
 
             data = ReturnData(originalData); //data is an ArrayList with cells
 
@@ -570,108 +697,47 @@ namespace Sudoku2
             if (data.Count == 81)
                 return new Result(null, true, false, true, true, null);
 
-            while (((data.Count + itemsSet) < 81) && (numberOfTries < maxNumberOfTries))
+            if (_totalNumberOfItemsPossibleToSet == 0)
+                return new Result(null, false, false, true, false, null);
+
+            FillCellsRemainToSet();
+
+            while (((originalData.Count + maxNumberOfItemsSetInATry) < 81) && (numberOfTries < maxNumberOfTries))
             {
                 numberOfTries++;
+                _debugTry++;
 
                 if (numberOfTries > 1)
                 {
                     Init();
                     SetData(data);
-                    itemsSet = 0;
-
-                    for (i = 0; i < dataSetBeforeSimulationHasBeenDone.Count; i++)
-                    {
-                        SetCell((Cell)dataSetBeforeSimulationHasBeenDone[i]);
-                    }
+                    SetData(_dataSetBeforeSimulationHasBeenDone);
+                    FillCellsRemainToSet();
                 }
 
                 atLeastOneItemSet = true;
+                _debugIteration = 0;
 
-                FillCellsRemainToSet();
-
-                while (((data.Count + itemsSet) < 81) && atLeastOneItemSet)
+                while ((_cellsRemainToSet.Count > 0) && atLeastOneItemSet)
                 {
-                    atLeastOneItemSet = false;
-                    cellsRemainToSet = ReturnCellsRemainToSet();
+                    _debugIteration++;
+                    atLeastOneItemSet = LoopThroughListWithCellsThatRemainToSet();
 
-
-
-                    if (!atLeastOneItemSet)
+                    if ((!atLeastOneItemSet) && (_totalNumberOfItemsPossibleToSet > 0))
                     {
-                        for (i = 0; i < 8; i++)
-                        {
-                            numberPossibleToSetItems[i] = 0;
-                        }
-
-                        minNumberPossibleToSetItems = int.MaxValue;
-
-                        for (i = 0; i < cellsRemainToSet.Count; i++)
-                        {
-                            rowIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).x;
-                            columnIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).y;
-
-                            if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)
-                            {
-                                throw new Exception("(_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)");
-                            }
-                            else if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count > 1)
-                            {
-                                if (minNumberPossibleToSetItems > _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count)
-                                {
-                                    minNumberPossibleToSetItems = _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count;
-                                }
-
-                                numberPossibleToSetItems[_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count - 2]++;
-                            }
-                        }
-
-                        if (minNumberPossibleToSetItems < int.MaxValue)
-                        {
-                            n = 0;
-                            i = 0;
-                            randomNumber = 1 + random.Next(numberPossibleToSetItems[minNumberPossibleToSetItems - 2]);
-
-                            while (n < randomNumber)
-                            {
-                                rowIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).x;
-                                columnIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).y;
-                                cell.position.x = rowIndex;
-                                cell.position.y = columnIndex;
-
-                                if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == minNumberPossibleToSetItems)
-                                {
-                                    n++;
-                                }
-
-                                if (n == randomNumber)
-                                {
-                                    cell.itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[random.Next(minNumberPossibleToSetItems)];
-                                    SetCell(cell);
-                                    atLeastOneItemSet = true;
-                                    simulationHasBeenDone = true;
-                                    itemsSet++;
-                                }
-
-                                i++;
-                            }
-                        }
+                        SimulateOneItem();
+                        atLeastOneItemSet = true;
                     }
                 }
 
-                if (itemsSet > maxNumberOfItemsSetInATry)
+                if ((81 - originalData.Count - _cellsRemainToSet.Count) > maxNumberOfItemsSetInATry)
                 {
-                    maxNumberOfItemsSetInATry = itemsSet;
+                    maxNumberOfItemsSetInATry = 81 - originalData.Count - _cellsRemainToSet.Count;
                     sudokuString = ReturnSudokuString();
-                }
-
-                if ((numberOfTries == 1) && (itemsSet == 0))
-                {
-                    return new Result(null, false, false, true, false, null);
                 }
             }
 
-            if ((data.Count + itemsSet) < 81)
+            if ((originalData.Count + maxNumberOfItemsSetInATry) < 81)
             {
                 return new Result(null, false, true, false, false, sudokuString);
             }
