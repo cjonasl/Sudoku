@@ -59,45 +59,37 @@ namespace Sudoku2
     public class SudokuBoard
     {
         private Cell[][] _cells;
-        private ArrayList[] _possibleToSetRow;
-        private ArrayList[] _possibleToSetColumn;
-        private ArrayList[] _possibleToSetSquare;
-        private ArrayList _cellsRemainToSet;
+        private int[][] _numberOfItemsPossibleToSetRow;
+        private int[][] _numberOfItemsPossibleToSetColumn;
+        private int[][] _numberOfItemsPossibleToSetSquare;
+        private int _totalNumberOfItemsPossibleToSet;
+        private ArrayList _cellsRemainToSet, _dataSetBeforeSimulationHasBeenDone;
+        private bool _simulationHasBeenDone;
         private TwoTupleOfIntegers[][] _squareIndex;
 
         public SudokuBoard()
         {
             int i, j, r, c;
 
-            _possibleToSetRow = new ArrayList[9];
-            _possibleToSetColumn = new ArrayList[9];
-            _possibleToSetSquare = new ArrayList[9];
+            _cells = new Cell[9][];
+            _numberOfItemsPossibleToSetRow = new int[9][];
+            _numberOfItemsPossibleToSetColumn = new int[9][];
+            _numberOfItemsPossibleToSetSquare = new int[9][];
             _squareIndex = new TwoTupleOfIntegers[9][];
 
             for (i = 0; i < 9; i++)
             {
-                _cells = new Cell[9][];
-                _possibleToSetRow[i] = new ArrayList();
-                _possibleToSetColumn[i] = new ArrayList();
-                _possibleToSetSquare[i] = new ArrayList();
-
-                for (j = 0; j < 9; j++)
-                {
-                    if (i == 0)
-                    {
-                        _squareIndex[j] = new TwoTupleOfIntegers[9];
-                        r = j / 3;
-                        c = j % 3;
-                        _squareIndex[j] = new TwoTupleOfIntegers[] { new TwoTupleOfIntegers(3 * r, 3 * c), new TwoTupleOfIntegers(3 * r, 3 * c + 1), new TwoTupleOfIntegers(3 * r, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 1, 3 * c), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 2, 3 * c), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 2) };
-                    }
-
-                    _cells[j] = new Cell[9];
-                }
+                r = i / 3;
+                c = i % 3;
+                _squareIndex[i] = new TwoTupleOfIntegers[] { new TwoTupleOfIntegers(3 * r, 3 * c), new TwoTupleOfIntegers(3 * r, 3 * c + 1), new TwoTupleOfIntegers(3 * r, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 1, 3 * c), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 2, 3 * c), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 2) };
+                _cells[i] = new Cell[9];
+                _numberOfItemsPossibleToSetRow[i] = new int[9];
+                _numberOfItemsPossibleToSetColumn[i] = new int[9];
+                _numberOfItemsPossibleToSetSquare[i] = new int[9];
             }
 
             for (i = 0; i < 9; i++)
             {
-
                 for (j = 0; j < 9; j++)
                 {
                     _cells[i][j] = new Cell(new TwoTupleOfIntegers(0, 0), 0);
@@ -105,8 +97,10 @@ namespace Sudoku2
             }
 
             _cellsRemainToSet = new ArrayList();
+            _dataSetBeforeSimulationHasBeenDone = new ArrayList();
+            _simulationHasBeenDone = false;
 
-            DebugPrintSquareIndex();
+            //DebugPrintSquareIndex();
         }
 
         private void DebugPrintSquareIndex()
@@ -205,108 +199,164 @@ namespace Sudoku2
             return returnValue;
         }
 
-        private bool CanSetItemValueInCell(Cell cell)
+        private bool CanSetItemValueInCell(int rowIndex, int columnIndex, int itemValue)
         {
-            int rowIndex = cell.position.x;
-            int columnIndex = cell.position.y;
             int squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-            int itemValue = cell.itemValue;
-
             return !RowHasItemValueInAnyCell(rowIndex, itemValue) && !ColumnHasItemValueInAnyCell(columnIndex, itemValue) && !SquareHasItemValueInAnyCell(squareIndex, itemValue);
-        }
-
-        private ArrayList ReturnListWithCellsToUpdate(int rowIndex, int columnIndex, int squareIndex)
-        {
-            ArrayList tmpArrayList, cellsToUpdate;
-            int i, r, c;
-            string str;
-
-            tmpArrayList = new ArrayList();
-            cellsToUpdate = new ArrayList();
-
-            for (i = 0; i <= 8; i++)
-            {
-                str = string.Format("[{0}][{1}]", i.ToString(), columnIndex.ToString());
-                tmpArrayList.Add(str);
-
-                if (_cells[i][columnIndex].itemValue == 0)
-                {
-                    cellsToUpdate.Add(new TwoTupleOfIntegers(i, columnIndex));
-                }
-            }
-
-            for (i = 0; i <= 8; i++)
-            {
-                str = string.Format("[{0}][{1}]", rowIndex.ToString(), i.ToString());
-                tmpArrayList.Add(str);
-
-                if (_cells[rowIndex][i].itemValue == 0)
-                {
-                    cellsToUpdate.Add(new TwoTupleOfIntegers(rowIndex, i));
-                }
-            }
-
-            for (i = 0; i <= 8; i++)
-            {
-                r = _squareIndex[squareIndex][i].x;
-                c = _squareIndex[squareIndex][i].y;
-
-                str = string.Format("[{0}][{1}]", r.ToString(), c.ToString());
-
-                if ((_cells[r][c].itemValue == 0) && (tmpArrayList.IndexOf(str) == -1))
-                {
-                    cellsToUpdate.Add(new TwoTupleOfIntegers(r, c));
-                }
-            }
-
-            //-----------------Debug -------------------
-            StringBuilder sb = new StringBuilder(string.Format("[rowIndex, columnIndex, squareIndex] = [{0}, {1}, {2}]\r\n", rowIndex.ToString(), columnIndex.ToString(), squareIndex.ToString()));
-            TwoTupleOfIntegers[] arrayWithTwoTupleOfIntegers = new TwoTupleOfIntegers[cellsToUpdate.Count];
-            for (i = 0; i < cellsToUpdate.Count; i++)
-            {
-                arrayWithTwoTupleOfIntegers[i] = (TwoTupleOfIntegers)cellsToUpdate[i];
-            }
-            sb.Append(ReturnArrayOfTwoTuplesAsString(arrayWithTwoTupleOfIntegers));
-            Sudoku.Utility.CreateNewFile("C:\\tmp\\Sudoku\\Sudoku2CellsToUpdate_" + Guid.NewGuid().ToString() + ".txt", sb.ToString());
-            //---------------------------------------------------------------------------
-
-            return cellsToUpdate;
         }
 
         private void UpdateStructure(int rowIndex, int columnIndex, int squareIndex, int itemValue)
         {
-            int i, rwIndex, clmIndex, sqIndex;
-            ArrayList cellsToUpdate;
+            int i, j, rowIdx, colIdx, sqIdx;
 
-            for (i = 0; i < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count; i++)
+            for(i = 0; i < 9; i++)
             {
-                _possibleToSetRow[rowIndex].Remove(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]);
-                _possibleToSetColumn[columnIndex].Remove(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]);
-                _possibleToSetSquare[squareIndex].Remove(_cells[rowIndex][columnIndex].possibleItemValuesToSet[i]);
+                if (_cells[rowIndex][i].itemValue == 0)
+                {
+                    for(j = 0; j < _cells[rowIndex][i].possibleItemValuesToSet.Count; j++)
+                    {
+                        if (_cells[rowIndex][i].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
+                        {
+                            _cells[rowIndex][i].possibleItemValuesToSet.Remove(itemValue);
+
+                            sqIdx = (3 * (rowIndex / 3)) + (i / 3);
+
+                            if (_numberOfItemsPossibleToSetRow[rowIndex][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetRow[rowIndex][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetColumn[i][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetColumn[i][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)");
+                            }
+
+                            _numberOfItemsPossibleToSetRow[rowIndex][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetColumn[i][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
+                            _totalNumberOfItemsPossibleToSet -= 3;
+                        }
+                    }
+                }
             }
 
-            cellsToUpdate = ReturnListWithCellsToUpdate(rowIndex, columnIndex, squareIndex);
-
-            for (i = 0; i < cellsToUpdate.Count; i++)
+            for (i = 0; i < 9; i++)
             {
-                rwIndex = ((TwoTupleOfIntegers)cellsToUpdate[i]).x;
-                clmIndex = ((TwoTupleOfIntegers)cellsToUpdate[i]).y;
-                sqIndex = (3 * (rwIndex / 3)) + (clmIndex / 3);
-                _cells[rwIndex][clmIndex].possibleItemValuesToSet.Remove(itemValue);
-                _possibleToSetRow[rwIndex].Remove(itemValue);
-                _possibleToSetColumn[clmIndex].Remove(itemValue);
-                _possibleToSetSquare[sqIndex].Remove(itemValue);
+                if ((i != rowIndex) && (_cells[i][columnIndex].itemValue == 0))
+                {
+                    for (j = 0; j < _cells[i][columnIndex].possibleItemValuesToSet.Count; j++)
+                    {
+                        if (_cells[i][columnIndex].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
+                        {
+                            _cells[i][columnIndex].possibleItemValuesToSet.Remove(itemValue);
+
+                            sqIdx = (3 * (i / 3)) + (columnIndex / 3);
+
+                            if (_numberOfItemsPossibleToSetRow[i][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetRow[i][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetColumn[columnIndex][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetColumn[columnIndex][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)");
+                            }
+
+                            _numberOfItemsPossibleToSetRow[i][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetColumn[columnIndex][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
+                            _totalNumberOfItemsPossibleToSet -= 3;
+                        }
+                    }
+                }
             }
 
-            _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
+            for (i = 0; i < 9; i++)
+            {
+                rowIdx = _squareIndex[squareIndex][i].x;
+                colIdx = _squareIndex[squareIndex][i].y;
+
+                if ((rowIdx != rowIndex) && (colIdx != columnIndex) && (_cells[rowIdx][colIdx].itemValue == 0))
+                {
+                    for (j = 0; j < _cells[rowIdx][colIdx].possibleItemValuesToSet.Count; j++)
+                    {
+                        if (_cells[rowIdx][colIdx].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
+                        {
+                            _cells[rowIdx][colIdx].possibleItemValuesToSet.Remove(itemValue);
+
+                            sqIdx = (3 * (rowIdx / 3)) + (colIdx / 3);
+
+                            if (_numberOfItemsPossibleToSetRow[rowIdx][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetRow[rowIdx][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetColumn[colIdx][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetColumn[colIdx][itemValue - 1] == 0)");
+                            }
+
+                            if (_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)
+                            {
+                                throw new Exception("(_numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1] == 0)");
+                            }
+
+                            _numberOfItemsPossibleToSetRow[rowIdx][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetColumn[colIdx][itemValue - 1]--;
+                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
+                            _totalNumberOfItemsPossibleToSet -= 3;
+                        }
+                    }
+                }
+            }
         }
 
-        private string SetCell(Cell cell)
+        private void Init()
         {
-            int rowIndex = cell.position.x;
-            int columnIndex = cell.position.y;
+            int i, j, rowIndex, columnIndex, squareIndex, itemValue;
+
+            for (rowIndex = 0; rowIndex < 9; rowIndex++)
+            {
+                for (columnIndex = 0; columnIndex < 9; columnIndex++)
+                {
+                    squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
+
+                    _cells[rowIndex][columnIndex].itemValue = 0;
+                    _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
+
+                    for (itemValue = 1; itemValue <= 9; itemValue++)
+                    {
+                        _cells[rowIndex][columnIndex].possibleItemValuesToSet.Add(itemValue);
+                    }
+                }
+            }
+
+            for (i = 0; i < 9; i++)
+            {
+                for (j = 0; j < 9; j++)
+                {
+                    _numberOfItemsPossibleToSetRow[i][j] = 9;
+                    _numberOfItemsPossibleToSetColumn[i][j] = 9;
+                    _numberOfItemsPossibleToSetSquare[i][j] = 9;
+                }
+            }
+
+            _totalNumberOfItemsPossibleToSet = (81 * 9);
+        }
+
+        private string SetCell(int rowIndex, int columnIndex, int itemValue)
+        {
             int squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-            int itemValue = cell.itemValue;
 
             if (RowHasItemValueInAnyCell(rowIndex, itemValue))
             {
@@ -332,34 +382,24 @@ namespace Sudoku2
 
         private string SetData(ArrayList data)
         {
-            int i, j;
+            int i;
             string returnValue = null;
-
-            for (i = 0; i < 9; i++)
-            {
-                for (j = 0; j < 9; j++)
-                {
-                    _cells[i][j].itemValue = 0;
-                }
-            }
-
-            ResetStructure();
 
             i = 0;
             while ((i < data.Count) && (returnValue == null))
             {
-                returnValue = SetCell((Cell)data[i]);
+                returnValue = SetCell(((Cell)data[i]).position.x, ((Cell)data[i]).position.y, ((Cell)data[i]).itemValue);
                 i++;
             }
 
-            DebugPrintStructure();
+            //DebugPrintStructure();
 
             return returnValue;
         }
 
-        private ArrayList ReturnCellsRemainToSet()
+        private void FillCellsRemainToSet()
         {
-            ArrayList cellsRemainToSet = new ArrayList();
+            _cellsRemainToSet.Clear();
 
             for (int i = 0; i < 9; i++)
             {
@@ -367,38 +407,7 @@ namespace Sudoku2
                 {
                     if (_cells[i][j].itemValue == 0)
                     {
-                        cellsRemainToSet.Add(new TwoTupleOfIntegers(i, j));
-                    }
-                }
-            }
-
-            return cellsRemainToSet;
-        }
-
-        private void ResetStructure()
-        {
-            int i, rowIndex, columnIndex, squareIndex, itemValue;
-
-            for (i = 0; i < 9; i++)
-            {
-                _possibleToSetRow[i].Clear();
-                _possibleToSetColumn[i].Clear();
-                _possibleToSetSquare[i].Clear();
-            }
-
-            for (rowIndex = 0; rowIndex < 9; rowIndex++)
-            {
-                for (columnIndex = 0; columnIndex < 9; columnIndex++)
-                {
-                    _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
-                    squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-
-                    for (itemValue = 1; itemValue <= 9; itemValue++)
-                    {
-                        _cells[rowIndex][columnIndex].possibleItemValuesToSet.Add(itemValue);
-                        _possibleToSetRow[rowIndex].Add(itemValue);
-                        _possibleToSetColumn[columnIndex].Add(itemValue);
-                        _possibleToSetSquare[squareIndex].Add(itemValue);
+                        _cellsRemainToSet.Add(new TwoTupleOfIntegers(i, j));
                     }
                 }
             }
@@ -476,24 +485,64 @@ namespace Sudoku2
             Sudoku.Utility.CreateNewFile("C:\\tmp\\Sudoku\\Sudoku2Structure_" + Guid.NewGuid().ToString() + ".txt", sb.ToString());
         }
 
-        private int ReturnNumberOfOccurenciesOfItemValue(ArrayList v, int itemValue)
+        private int LoopThroughListWithCellsThatRemainToSet()
         {
-            int i, numberOfOccurencies = 0;
+            int i, j, itemsSet, itemValue = 0, rowIndex, columnIndex, squareIndex;
+            bool findItemToSet;
 
-            for (i = 0; i < v.Count; i++)
+            i = 0;
+            itemsSet = 0;
+
+            while (i < _cellsRemainToSet.Count)
             {
-                if ((int)v[i] == itemValue)
+                findItemToSet = false;
+                rowIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).x;
+                columnIndex = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).y;
+                squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
+
+                if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)
                 {
-                    numberOfOccurencies++;
+                    findItemToSet = true;
+                    itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[0];
+                }
+                else
+                {
+                    j = 0;
+                    while ((j < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count) && (!findItemToSet))
+                    {
+                        itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j];
+
+                        if ((_numberOfItemsPossibleToSetRow[rowIndex][itemValue - 1] == 1) || (_numberOfItemsPossibleToSetColumn[columnIndex][itemValue - 1] == 1) || (_numberOfItemsPossibleToSetSquare[squareIndex][itemValue - 1] == 1))
+                        {
+                            findItemToSet = true;
+                        }
+                        else
+                        {
+                            j++;
+                        }
+                    }
+                }
+
+                if (findItemToSet)
+                {
+                    SetCell(rowIndex, columnIndex, itemValue);
+
+                    if (!_simulationHasBeenDone)
+                    {
+                        _dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), itemValue));
+                    }
+
+                    itemsSet++;
+
+                    _cellsRemainToSet.RemoveAt(i);
+                }
+                else
+                {
+                    i++;
                 }
             }
 
-            if (numberOfOccurencies == 0)
-            {
-                throw new Exception("(numberOfOccurencies == 0) in ReturnNumberOfOccurenciesOfItemValue!");
-            }
-
-            return numberOfOccurencies;
+            return itemsSet;
         }
 
         public Result Process(ArrayList originalData, int maxNumberOfTries)
@@ -512,6 +561,7 @@ namespace Sudoku2
 
             data = ReturnData(originalData); //data is an ArrayList with cells
 
+            Init();
             errorMessage = SetData(data);
 
             if (errorMessage != null)
@@ -526,6 +576,7 @@ namespace Sudoku2
 
                 if (numberOfTries > 1)
                 {
+                    Init();
                     SetData(data);
                     itemsSet = 0;
 
@@ -537,84 +588,14 @@ namespace Sudoku2
 
                 atLeastOneItemSet = true;
 
+                FillCellsRemainToSet();
+
                 while (((data.Count + itemsSet) < 81) && atLeastOneItemSet)
                 {
                     atLeastOneItemSet = false;
                     cellsRemainToSet = ReturnCellsRemainToSet();
 
-                    for (i = 0; i < cellsRemainToSet.Count; i++)
-                    {
-                        rowIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).x;
-                        columnIndex = ((TwoTupleOfIntegers)cellsRemainToSet[i]).y;
-                        squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
 
-                        cell.position.x = rowIndex;
-                        cell.position.y = columnIndex;
-
-                        if (_cells[rowIndex][columnIndex].possibleItemValuesToSet.Count == 1)
-                        {
-                            cell.itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[0];
-                            SetCell(cell);
-                            atLeastOneItemSet = true;
-                            itemsSet++;
-
-                            if (!simulationHasBeenDone)
-                            {
-                                dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), cell.itemValue));
-                            }
-                        }
-                        else
-                        {
-                            findItemToSet = false;
-                            j = 0;
-                            while ((j < _cells[rowIndex][columnIndex].possibleItemValuesToSet.Count) && (!findItemToSet))
-                            {
-                                if (ReturnNumberOfOccurenciesOfItemValue(_possibleToSetRow[rowIndex], (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j]) == 1)
-                                {
-                                    cell.itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j];
-                                    SetCell(cell);
-                                    atLeastOneItemSet = true;
-                                    findItemToSet = true;
-                                    itemsSet++;
-
-                                    if (!simulationHasBeenDone)
-                                    {
-                                        dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), cell.itemValue));
-                                    }
-                                }
-                                else if (ReturnNumberOfOccurenciesOfItemValue(_possibleToSetColumn[columnIndex], (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j]) == 1)
-                                {
-                                    cell.itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j];
-                                    SetCell(cell);
-                                    atLeastOneItemSet = true;
-                                    findItemToSet = true;
-                                    itemsSet++;
-
-                                    if (!simulationHasBeenDone)
-                                    {
-                                        dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), cell.itemValue));
-                                    }
-                                }
-                                else if (ReturnNumberOfOccurenciesOfItemValue(_possibleToSetSquare[squareIndex], (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j]) == 1)
-                                {
-                                    cell.itemValue = (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[j];
-                                    SetCell(cell);
-                                    atLeastOneItemSet = true;
-                                    findItemToSet = true;
-                                    itemsSet++;
-
-                                    if (!simulationHasBeenDone)
-                                    {
-                                        dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), cell.itemValue));
-                                    }
-                                }
-                                else
-                                {
-                                    j++;
-                                }
-                            }
-                        }
-                    }
 
                     if (!atLeastOneItemSet)
                     {
