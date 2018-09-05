@@ -598,9 +598,8 @@ namespace Sudoku2
 
         private void SimulateOneItem()
         {
-            int i, rowIndex, columnIndex, rowIdx, colIdx, minNumberPossibleToSetItems, randomNumber,  n;
+            int i, rowIndex, columnIndex, minNumberPossibleToSetItems, randomNumber,  n;
             int[] numberPossibleToSetItems = new int[8];
-            bool found;
 
             for (i = 0; i < 8; i++)
             {
@@ -652,23 +651,7 @@ namespace Sudoku2
                 {
                     SetCell(rowIndex, columnIndex, (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[_random.Next(minNumberPossibleToSetItems)]);
                     _simulationHasBeenDone = true;
-
-                    found = false;
-                    i = 0;
-
-                    while (!found)
-                    {
-                        rowIdx = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).x;
-                        colIdx = ((TwoTupleOfIntegers)_cellsRemainToSet[i]).y;
-
-                        if ((rowIdx == rowIndex) && (colIdx == columnIndex))
-                        {
-                            found = true;
-                            _cellsRemainToSet.RemoveAt(i);
-                        }
-
-                        i++;
-                    }
+                    _cellsRemainToSet.RemoveAt(i);
                 }
 
                 i++;

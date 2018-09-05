@@ -204,6 +204,10 @@ namespace Sudoku
                 {
                     MessageBox.Show("Unable to completely solve sudoku!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                else
+                {
+                    MessageBox.Show("Sudoku solved!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
 
                 if ((result.partiallySolved) || (result.solved))
                 {
