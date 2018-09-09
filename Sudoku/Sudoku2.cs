@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Sudoku2
 {
@@ -13,16 +11,16 @@ namespace Sudoku2
         public bool partiallySolved;
         public bool nothingSolved;
         public bool solved;
-        public string sudokuString;
+        public ArrayList setData;
 
-        public Result(string errorMessage, bool solvedAlready, bool partiallySolved, bool nothingSolved, bool solved, string sudokuString)
+        public Result(string errorMessage, bool solvedAlready, bool partiallySolved, bool nothingSolved, bool solved, ArrayList setData)
         {
             this.errorMessage = errorMessage;
             this.solvedAlready = solvedAlready;
             this.partiallySolved = partiallySolved;
             this.nothingSolved = nothingSolved;
             this.solved = solved;
-            this.sudokuString = sudokuString;
+            this.setData = setData;
         }
     }
 
@@ -47,11 +45,13 @@ namespace Sudoku2
         public TwoTupleOfIntegers position; //rowIndex, columnIndex
         public int itemValue; //1-9, or 0 if not set
         public ArrayList possibleItemValuesToSet;
+        public bool originalData;
 
-        public Cell(TwoTupleOfIntegers position, int itemValue)
+        public Cell(TwoTupleOfIntegers position, int itemValue, bool originalData)
         {
             this.position = position;
             this.itemValue = itemValue;
+            this.originalData = originalData;
             possibleItemValuesToSet = new ArrayList();
         }
     }
@@ -68,10 +68,11 @@ namespace Sudoku2
         private TwoTupleOfIntegers[][] _squareIndex;
         private Random _random;
         private int _debugLopNr, _debugTry, _debugIteration;
+        private DebugSudoku2 _debugSudoku2;
 
         public SudokuBoard()
         {
-            int i, j, r, c;
+            int i, j;
 
             _cells = new Cell[9][];
             _numberOfItemsPossibleToSetRow = new int[9][];
@@ -81,9 +82,7 @@ namespace Sudoku2
 
             for (i = 0; i < 9; i++)
             {
-                r = i / 3;
-                c = i % 3;
-                _squareIndex[i] = new TwoTupleOfIntegers[] { new TwoTupleOfIntegers(3 * r, 3 * c), new TwoTupleOfIntegers(3 * r, 3 * c + 1), new TwoTupleOfIntegers(3 * r, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 1, 3 * c), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 1, 3 * c + 2), new TwoTupleOfIntegers(3 * r + 2, 3 * c), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 1), new TwoTupleOfIntegers(3 * r + 2, 3 * c + 2) };
+                _squareIndex[i] = new TwoTupleOfIntegers[9];
                 _cells[i] = new Cell[9];
                 _numberOfItemsPossibleToSetRow[i] = new int[9];
                 _numberOfItemsPossibleToSetColumn[i] = new int[9];
@@ -92,9 +91,17 @@ namespace Sudoku2
 
             for (i = 0; i < 9; i++)
             {
+                for(j = 0; j < 9; j++)
+                {
+                    _squareIndex[i][j] = new TwoTupleOfIntegers((3 * (i / 3)) + (j / 3), (3 * (i % 3)) + (j % 3));
+                }
+            }
+
+            for (i = 0; i < 9; i++)
+            {
                 for (j = 0; j < 9; j++)
                 {
-                    _cells[i][j] = new Cell(new TwoTupleOfIntegers(0, 0), 0);
+                    _cells[i][j] = new Cell(new TwoTupleOfIntegers(i, j), 0, false);
                 }
             }
 
@@ -105,6 +112,8 @@ namespace Sudoku2
             _random = new Random((int)(DateTime.Now.Ticks % (long)int.MaxValue));
 
             _debugLopNr = 0;
+
+            _debugSudoku2 = new DebugSudoku2();
         }
 
         private void DebugPrintSquareIndex()
@@ -140,14 +149,14 @@ namespace Sudoku2
             return sb.ToString();
         }
 
-        private bool RowHasItemValueInAnyCell(int FixedRowIndex, int itemValue)
+        private bool RowHasItemValueInAnyCell(int fixedRowIndex, int itemValue)
         {
             bool returnValue = false;
             int variableColumnIndex = 0;
 
             while ((!returnValue) && (variableColumnIndex < 9))
             {
-                if (_cells[FixedRowIndex][variableColumnIndex].itemValue == itemValue)
+                if (_cells[fixedRowIndex][variableColumnIndex].itemValue == itemValue)
                 {
                     returnValue = true;
                 }
@@ -369,8 +378,10 @@ namespace Sudoku2
             _totalNumberOfItemsPossibleToSet = (81 * 9 * 3);
         }
 
-        private string SetCell(int rowIndex, int columnIndex, int itemValue)
+        private string SetCell(int rowIndex, int columnIndex, int itemValue, bool originalData)
         {
+            string debugNumberOfItemsPossibleToSetAsString1, debugNumberOfItemsPossibleToSetAsString2;
+
             int squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
 
             if (RowHasItemValueInAnyCell(rowIndex, itemValue))
@@ -393,6 +404,7 @@ namespace Sudoku2
             sb.Append("------------------ Debug data before ------------------\r\n" + ReturnDebugData() + "\r\n\r\n");
 
             _cells[rowIndex][columnIndex].itemValue = itemValue;
+            _cells[rowIndex][columnIndex].originalData = originalData;
             UpdateStructure(rowIndex, columnIndex, squareIndex, itemValue);
 
             sb.Append("------------------ Debug data after ------------------\r\n" + ReturnDebugData());
@@ -420,6 +432,14 @@ namespace Sudoku2
             {
                 throw new Exception("n1 != _totalNumberOfItemsPossibleToSet");
             }
+
+            debugNumberOfItemsPossibleToSetAsString1 = DebugReturnNumberOfItemsPossibleToSetAsString();
+            debugNumberOfItemsPossibleToSetAsString2 = _debugSudoku2.ReturnNumberOfItemsPossibleToSetAsString(_cells);
+
+            if (debugNumberOfItemsPossibleToSetAsString1 != debugNumberOfItemsPossibleToSetAsString2)
+            {
+                throw new Exception("debugNumberOfItemsPossibleToSetAsString1 != debugNumberOfItemsPossibleToSetAsString2");
+            }
             //---------------------------------------------------------------------
 
             return null;
@@ -433,7 +453,7 @@ namespace Sudoku2
             i = 0;
             while ((i < data.Count) && (returnValue == null))
             {
-                returnValue = SetCell(((Cell)data[i]).position.x, ((Cell)data[i]).position.y, ((Cell)data[i]).itemValue);
+                returnValue = SetCell(((Cell)data[i]).position.x, ((Cell)data[i]).position.y, ((Cell)data[i]).itemValue, ((Cell)data[i]).originalData);
                 i++;
             }
 
@@ -468,10 +488,52 @@ namespace Sudoku2
                 threeTupleOfIntegers = (Sudoku.ThreeTupleOfIntegers)originalData[i];
                 position = new TwoTupleOfIntegers(threeTupleOfIntegers.rowIndex, threeTupleOfIntegers.columnIndex);
                 itemValue = threeTupleOfIntegers.item;
-                data.Add(new Cell(position, itemValue));
+                data.Add(new Cell(position, itemValue, true));
             }
 
             return data;
+        }
+
+        private ArrayList ReturnArrayListWithSetData()
+        {
+            int i, j;
+            ArrayList v = new ArrayList();
+
+            for(i = 0; i < 9; i++)
+            {
+                for (j = 0; j < 9; j++)
+                {
+                    if ((_cells[i][j].itemValue != 0) && (!_cells[i][j].originalData))
+                    {
+                        v.Add(new Sudoku.ThreeTupleOfIntegers(i, j, _cells[i][j].itemValue));
+                    }
+                }
+            }
+
+            return v;
+        }
+
+        private string DebugReturnNumberOfItemsPossibleToSetAsString()
+        {
+            int i;
+            StringBuilder sb = new StringBuilder();
+
+            for (i = 0; i < 9; i++)
+            {
+                sb.Append(Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetRow[i], 9, '[', ']'));
+            }
+
+            for (i = 0; i < 9; i++)
+            {
+                sb.Append(Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetColumn[i], 9, '[', ']'));
+            }
+
+            for (i = 0; i < 9; i++)
+            {
+                sb.Append(Sudoku.Utility.ReturnString(_numberOfItemsPossibleToSetSquare[i], 9, '[', ']'));
+            }
+
+            return sb.ToString().TrimEnd();
         }
 
         private string ReturnSudokuString()
@@ -576,11 +638,11 @@ namespace Sudoku2
 
                 if (findItemToSet)
                 {
-                    SetCell(rowIndex, columnIndex, itemValue);
+                    SetCell(rowIndex, columnIndex, itemValue, false);
 
                     if (!_simulationHasBeenDone)
                     {
-                        _dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), itemValue));
+                        _dataSetBeforeSimulationHasBeenDone.Add(new Cell(new TwoTupleOfIntegers(rowIndex, columnIndex), itemValue, false));
                     }
 
                     atLeastOneItemSet = true;
@@ -649,7 +711,7 @@ namespace Sudoku2
 
                 if (n == randomNumber)
                 {
-                    SetCell(rowIndex, columnIndex, (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[_random.Next(minNumberPossibleToSetItems)]);
+                    SetCell(rowIndex, columnIndex, (int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[_random.Next(minNumberPossibleToSetItems)], false);
                     _simulationHasBeenDone = true;
                     _cellsRemainToSet.RemoveAt(i);
                 }
@@ -662,9 +724,9 @@ namespace Sudoku2
         {
             ArrayList data;
             int numberOfTries = 0, maxNumberOfItemsSetInATry = 0;
-            int[] numberPossibleToSetItems = new int[8];
             bool atLeastOneItemSet;
-            string errorMessage, sudokuString = null;
+            string errorMessage;
+            ArrayList setData = null;
 
             _debugTry = 0;
             _debugIteration = 0;
@@ -716,17 +778,17 @@ namespace Sudoku2
                 if ((81 - originalData.Count - _cellsRemainToSet.Count) > maxNumberOfItemsSetInATry)
                 {
                     maxNumberOfItemsSetInATry = 81 - originalData.Count - _cellsRemainToSet.Count;
-                    sudokuString = ReturnSudokuString();
+                    setData = ReturnArrayListWithSetData();
                 }
             }
 
             if ((originalData.Count + maxNumberOfItemsSetInATry) < 81)
             {
-                return new Result(null, false, true, false, false, sudokuString);
+                return new Result(null, false, true, false, false, setData);
             }
             else
             {
-                return new Result(null, false, false, false, true, sudokuString);
+                return new Result(null, false, false, false, true, setData);
             }
         }
     }

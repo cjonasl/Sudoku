@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CollectionSudokuPossibleHolder.cs" />
+    <Compile Include="DebugSudoku2.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

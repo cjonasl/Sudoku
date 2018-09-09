@@ -239,6 +239,24 @@ namespace Sudoku
             }
         }
 
+        public static void UpdateSudokuCells(TextBox[,] sudokuCells, ArrayList originalData, ArrayList setData)
+        {
+            int i, j;
+            ThreeTupleOfIntegers ttoi;
+
+            for (i = 0; i < originalData.Count; i++)
+            {
+                ttoi = (ThreeTupleOfIntegers)originalData[i];
+                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].BackColor = System.Drawing.Color.LightGray;
+            }
+
+            for (i = 0; i < setData.Count; i++)
+            {
+                ttoi = (ThreeTupleOfIntegers)setData[i];
+                sudokuCells[ttoi.rowIndex, ttoi.columnIndex].Text = ttoi.item.ToString();
+            }
+        }
+
         public static void ResetBackcolor(TextBox[,] sudokuCells, ArrayList originalData)
         {
             int i;

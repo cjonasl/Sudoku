@@ -211,7 +211,7 @@ namespace Sudoku
 
                 if ((result.partiallySolved) || (result.solved))
                 {
-                    Utility.UpdateSudokuCells(_sudokuCells, _originalData, result.sudokuString, false);
+                    Utility.UpdateSudokuCells(_sudokuCells, _originalData, result.setData);
                     this.buttonNew.Enabled = true;
                     this.buttonRun1.Enabled = false;
                     this.buttonRun2.Enabled = false;
