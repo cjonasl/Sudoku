@@ -212,12 +212,6 @@ namespace Sudoku2
             return returnValue;
         }
 
-        private bool CanSetItemValueInCell(int rowIndex, int columnIndex, int itemValue)
-        {
-            int squareIndex = (3 * (rowIndex / 3)) + (columnIndex / 3);
-            return !RowHasItemValueInAnyCell(rowIndex, itemValue) && !ColumnHasItemValueInAnyCell(columnIndex, itemValue) && !SquareHasItemValueInAnyCell(squareIndex, itemValue);
-        }
-
         private void UpdateStructure(int rowIndex, int columnIndex, int squareIndex, int itemValue)
         {
             int i, j, rowIdx, colIdx, sqIdx;
@@ -228,7 +222,7 @@ namespace Sudoku2
                 _numberOfItemsPossibleToSetRow[rowIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
                 _numberOfItemsPossibleToSetColumn[columnIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
                 _numberOfItemsPossibleToSetSquare[squareIndex][(int)_cells[rowIndex][columnIndex].possibleItemValuesToSet[i] - 1]--;
-                _totalNumberOfItemsPossibleToSet -= 3;
+                _totalNumberOfItemsPossibleToSet--;
             }
 
             _cells[rowIndex][columnIndex].possibleItemValuesToSet.Clear();
@@ -242,6 +236,7 @@ namespace Sudoku2
                         if (_cells[rowIndex][i].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
                         {
                             _cells[rowIndex][i].possibleItemValuesToSet.Remove(itemValue);
+                            _totalNumberOfItemsPossibleToSet--;
 
                             sqIdx = (3 * (rowIndex / 3)) + (i / 3);
 
@@ -262,8 +257,7 @@ namespace Sudoku2
 
                             _numberOfItemsPossibleToSetRow[rowIndex][itemValue - 1]--;
                             _numberOfItemsPossibleToSetColumn[i][itemValue - 1]--;
-                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
-                            _totalNumberOfItemsPossibleToSet -= 3;
+                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;               
                         }
                     }
                 }
@@ -278,6 +272,7 @@ namespace Sudoku2
                         if (_cells[i][columnIndex].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
                         {
                             _cells[i][columnIndex].possibleItemValuesToSet.Remove(itemValue);
+                            _totalNumberOfItemsPossibleToSet--;
 
                             sqIdx = (3 * (i / 3)) + (columnIndex / 3);
 
@@ -298,8 +293,7 @@ namespace Sudoku2
 
                             _numberOfItemsPossibleToSetRow[i][itemValue - 1]--;
                             _numberOfItemsPossibleToSetColumn[columnIndex][itemValue - 1]--;
-                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
-                            _totalNumberOfItemsPossibleToSet -= 3;
+                            _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;                         
                         }
                     }
                 }
@@ -317,8 +311,14 @@ namespace Sudoku2
                         if (_cells[rowIdx][colIdx].possibleItemValuesToSet.IndexOf(itemValue) >= 0)
                         {
                             _cells[rowIdx][colIdx].possibleItemValuesToSet.Remove(itemValue);
+                            _totalNumberOfItemsPossibleToSet--;
 
                             sqIdx = (3 * (rowIdx / 3)) + (colIdx / 3);
+
+                            if (squareIndex != sqIdx)
+                            {
+                                throw new Exception("squareIndex != sqIdx");
+                            }
 
                             if (_numberOfItemsPossibleToSetRow[rowIdx][itemValue - 1] == 0)
                             {
@@ -338,7 +338,6 @@ namespace Sudoku2
                             _numberOfItemsPossibleToSetRow[rowIdx][itemValue - 1]--;
                             _numberOfItemsPossibleToSetColumn[colIdx][itemValue - 1]--;
                             _numberOfItemsPossibleToSetSquare[sqIdx][itemValue - 1]--;
-                            _totalNumberOfItemsPossibleToSet -= 3;
                         }
                     }
                 }
@@ -375,7 +374,7 @@ namespace Sudoku2
                 }
             }
 
-            _totalNumberOfItemsPossibleToSet = (81 * 9 * 3);
+            _totalNumberOfItemsPossibleToSet = (81 * 9);
         }
 
         private string SetCell(int rowIndex, int columnIndex, int itemValue, bool originalData)
@@ -410,16 +409,18 @@ namespace Sudoku2
             sb.Append("------------------ Debug data after ------------------\r\n" + ReturnDebugData());
 
             _debugLopNr++;
-            Sudoku.Utility.CreateNewFile(string.Format("C:\\tmp\\Sudoku\\Print{0}_Try_{1}_Iteration_{2}.txt", _debugLopNr.ToString(), _debugTry.ToString(), _debugIteration.ToString()), sb.ToString());
+            //Sudoku.Utility.CreateNewFile(string.Format("C:\\tmp\\Sudoku\\Print{0}_Try_{1}_Iteration_{2}.txt", _debugLopNr.ToString(), _debugTry.ToString(), _debugIteration.ToString()), sb.ToString());
 
             //----------------- Debug ---------------------------------------------
-            int i, j, n1 = 0, n2 = 0;
+            int i, j, n1 = 0, n2 = 0, n3 = 0, n4 = 0;
             for(i = 0; i < 9; i++)
             {
                 for (j = 0; j < 9; j++)
                 {
                     n1 += _cells[i][j].possibleItemValuesToSet.Count;
                     n2 += _numberOfItemsPossibleToSetRow[i][j];
+                    n3 += _numberOfItemsPossibleToSetColumn[j][i];
+                    n4 += _numberOfItemsPossibleToSetSquare[(3 * (i / 3)) + (j / 3)][(3 * (i % 3)) + (j % 3)];
                 }
             }
 
@@ -428,7 +429,17 @@ namespace Sudoku2
                 throw new Exception("n1 != n2");
             }
 
-            if ((3 * n1) != _totalNumberOfItemsPossibleToSet)
+            if (n1 != n3)
+            {
+                throw new Exception("n1 != n3");
+            }
+
+            if (n1 != n4)
+            {
+                throw new Exception("n1 != n4");
+            }
+
+            if (n1 != _totalNumberOfItemsPossibleToSet)
             {
                 throw new Exception("n1 != _totalNumberOfItemsPossibleToSet");
             }

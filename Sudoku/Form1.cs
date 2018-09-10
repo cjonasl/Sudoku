@@ -196,6 +196,10 @@ namespace Sudoku
                 {
                     MessageBox.Show("Data is incorrect! Error message: " + result.errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                else if (result.solvedAlready)
+                {
+                    MessageBox.Show("Solved already!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 else if (result.nothingSolved)
                 {
                     MessageBox.Show("Unable to solve sudoku!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
